@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOL TEAM DIVIDER v1.00</title>
+<title>TEAM DIVIDER v1.00</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -76,12 +76,14 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .reroll-badge { font-size:.62rem; padding:.08rem .35rem; border-radius:2rem; background:rgba(200,120,32,.15); color:#C87820; border:1px solid rgba(200,120,32,.4); }
 
 /* Player list */
-.player-scroll { max-height:400px; overflow-y:auto; }
+.player-scroll { max-height:calc(100vh - 340px); overflow-y:auto; }
 .player-item { display:flex; align-items:center; gap:.35rem; padding:.4rem .55rem; background:var(--card-bg); border:1px solid var(--border); border-radius:.35rem; transition:border-color .15s; }
 .player-item:hover { border-color:var(--gold); }
 .player-item.on-break { opacity:.6; background:#f4f4f4; }
 
-.rank-badge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.6rem; font-weight:700; flex-shrink:0; border:1.5px solid; }
+.rank-badge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; flex-shrink:0; border:1.5px solid; }
+.player-item .rank-badge { cursor:pointer; transition:opacity .15s; }
+.player-item .rank-badge:hover { opacity:.7; }
 .rb-0 { color:var(--rank0-c); border-color:var(--rank0-c); background:var(--rank0-bg); }
 .rb-1 { color:var(--rank1-c); border-color:var(--rank1-c); background:var(--rank1-bg); }
 .rb-2 { color:var(--rank2-c); border-color:var(--rank2-c); background:var(--rank2-bg); }
@@ -114,7 +116,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .spec-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .55rem; border-radius:2rem; background:#f4f4f4; border:1px solid var(--border); font-size:.78rem; }
 .spec-chip.has-pri { border-color:var(--gold); background:var(--gold-bg); }
 
-.history-scroll { max-height:240px; overflow-y:auto; }
+.history-scroll { max-height:calc(100vh - 480px); overflow-y:auto; }
 .history-item { background:var(--card-bg); border:1px solid var(--border); border-radius:.35rem; padding:.5rem .75rem; font-size:.78rem; transition:border-color .15s; }
 .history-item:hover { border-color:var(--gold-line); }
 .r-badge { font-family:'Cinzel',serif; font-size:.65rem; color:var(--gold); letter-spacing:1px; }
@@ -132,7 +134,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
 <div class="app-header">
   <div>
-    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>LOL TEAM DIVIDER <span class="version">v1.00</span></h1>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.00</span></h1>
     <p>BALANCED MATCHMAKING SYSTEM</p>
   </div>
 </div>
@@ -148,10 +150,13 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         <div class="d-flex flex-column gap-2">
           <input type="text" id="playerName" class="form-control" placeholder="プレイヤー名" maxlength="20"
             onkeydown="if(event.key==='Enter')addPlayer()">
-          <div class="d-flex gap-1 rank-group" id="rankGroup">
-            <button class="btn btn-rank-0 sel" onclick="selectRank(0)">初 級</button>
-            <button class="btn btn-rank-1"     onclick="selectRank(1)">中 級</button>
-            <button class="btn btn-rank-2"     onclick="selectRank(2)">上 級</button>
+          <div class="d-flex align-items-center gap-1">
+            <span style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;">レシオ</span>
+            <div class="d-flex gap-1 rank-group flex-grow-1" id="rankGroup">
+              <button class="btn btn-rank-0 sel" onclick="selectRank(0)">1</button>
+              <button class="btn btn-rank-1"     onclick="selectRank(1)">2</button>
+              <button class="btn btn-rank-2"     onclick="selectRank(2)">3</button>
+            </div>
           </div>
           <button class="btn btn-gold w-100 py-2" onclick="addPlayer()"><i class="bi bi-plus-lg me-1"></i>追加</button>
         </div>
@@ -169,10 +174,10 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
       <div class="border-top pt-2 mt-auto" style="border-color:var(--border)!important;">
         <div style="font-size:.7rem;color:var(--text-muted);line-height:2.1;">
-          <div><i class="bi bi-controller" style="font-size:.65rem;"></i> 参加 ／ <i class="bi bi-eye" style="font-size:.65rem;"></i> 観戦 （累計回数）</div>
+          <div><i class="bi bi-controller" style="font-size:.65rem;"></i> 参加 ／ <i class="bi bi-eye" style="font-size:.65rem;"></i> 待機 （累計回数）</div>
           <div><span style="color:var(--gold);font-weight:500;">★優先</span> = 次ラウンドで必ず参加</div>
-          <div><span style="color:#888;font-weight:500;">👁観戦</span> = 今ラウンドを欠席し観戦者になる</div>
-          <div>観戦者は次ラウンドで自動優先参加</div>
+          <div><span style="color:#888;font-weight:500;">👁待機</span> = 今ラウンドを欠席し待機者になる</div>
+          <div>待機者は次ラウンドで自動優先参加</div>
         </div>
         <button class="btn btn-outline-danger btn-sm w-100 mt-2" style="font-size:.72rem;" onclick="clearSave()">
           <i class="bi bi-trash me-1"></i>保存データを削除
@@ -194,7 +199,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         <div class="d-none align-items-center gap-2" id="rerollOpts">
           <div class="form-check form-check-inline mb-0" style="font-size:.78rem;">
             <input class="form-check-input" type="checkbox" id="rerollIncludeOverflow">
-            <label class="form-check-label" for="rerollIncludeOverflow">枠不足の観戦者を含める</label>
+            <label class="form-check-label" for="rerollIncludeOverflow">枠不足の待機者を含める</label>
           </div>
         </div>
         <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="resetRounds()">
@@ -209,18 +214,56 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
           <div class="form-check mb-0">
             <input class="form-check-input" type="radio" name="mode" id="mRC" value="rank_count" checked>
             <label class="form-check-label" for="mRC">
-              <strong>均等ランク分け</strong>
+              <strong>均等レシオ分け</strong>
               <span class="ms-1 badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:400;font-size:.65rem;">標準</span>
-              <div style="font-size:.72rem;color:var(--text-muted);">各ランクの人数が両チームで均等になるよう分配</div>
+              <div style="font-size:.72rem;color:var(--text-muted);">各レシオの人数が両チームで均等になるよう分配</div>
             </label>
           </div>
           <div class="form-check mb-0">
             <input class="form-check-input" type="radio" name="mode" id="mRS" value="rank_sum">
             <label class="form-check-label" for="mRS">
-              <strong>ランク合計均等</strong>
+              <strong>レシオ合計均等</strong>
               <span class="ms-1 badge" style="background:#f8f8f8;color:var(--text-muted);border:1px solid var(--border);font-weight:400;font-size:.65rem;">オプション</span>
-              <div style="font-size:.72rem;color:var(--text-muted);">スネークドラフトでランク合計が均等になるよう分配</div>
+              <div style="font-size:.72rem;color:var(--text-muted);">スネークドラフトでレシオ合計が均等になるよう分配</div>
             </label>
+          </div>
+        </div>
+        <div class="border-top mt-2 pt-2" style="border-color:var(--border)!important;">
+          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-people me-1"></i>選出方式</div>
+          <div class="d-flex gap-4 flex-wrap">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="radio" name="selectionMode" id="smBalance" value="balance" checked onchange="toggleBiasOpts()">
+              <label class="form-check-label" for="smBalance">
+                <strong>バランス優先</strong>
+                <div style="font-size:.72rem;color:var(--text-muted);">レシオの均衡を重視（連戦を許可）</div>
+              </label>
+            </div>
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="radio" name="selectionMode" id="smRotation" value="rotation" onchange="toggleBiasOpts()">
+              <label class="form-check-label" for="smRotation">
+                <strong>ローテーション優先</strong>
+                <div style="font-size:.72rem;color:var(--text-muted);">全員が均等に参加することを重視</div>
+              </label>
+            </div>
+          </div>
+          <div class="mt-2" id="biasOpts">
+            <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-sort-numeric-down me-1"></i>選出傾向（バランス優先時）</div>
+            <div class="d-flex gap-4 flex-wrap">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="radio" name="bias" id="biasLow" value="low" checked>
+                <label class="form-check-label" for="biasLow">
+                  <strong>低レシオ優先</strong>
+                  <div style="font-size:.72rem;color:var(--text-muted);">レシオが低い人を多く選出</div>
+                </label>
+              </div>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="radio" name="bias" id="biasHigh" value="high">
+                <label class="form-check-label" for="biasHigh">
+                  <strong>高レシオ優先</strong>
+                  <div style="font-size:.72rem;color:var(--text-muted);">レシオが高い人を多く選出</div>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -266,9 +309,11 @@ let nextPlayerId = 0;
 // ═══════════════════════════════════════════════════════
 
 const TEAM_SIZE = 5;
-const RANK_LABELS = ['初', '中', '上'];
+const RANK_LABELS = ['1', '2', '3'];
 const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
-const MODE_LABELS = { rank_count: '均等ランク', rank_sum: '合計均等' };
+const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
+const SELECTION_LABELS = { rotation: 'ローテーション', balance: 'バランス' };
+const BIAS_LABELS = { low: '低レシオ優先', high: '高レシオ優先' };
 const SAVE_KEY = 'lol_td_players';
 
 // ═══════════════════════════════════════════════════════
@@ -303,6 +348,16 @@ function getSelectedMode() {
   return document.querySelector('input[name="mode"]:checked').value;
 }
 
+/** 現在選択中の選出方式を取得 */
+function getSelectedSelectionMode() {
+  return document.querySelector('input[name="selectionMode"]:checked').value;
+}
+
+/** 現在選択中の選出傾向を取得 */
+function getSelectedBias() {
+  return document.querySelector('input[name="bias"]:checked').value;
+}
+
 /** トースト通知 */
 function toast(msg, type = 'primary') {
   const el = document.getElementById('appToast');
@@ -326,6 +381,12 @@ function selectRank(rank) {
   document.querySelectorAll('#rankGroup .btn').forEach((btn, i) => {
     btn.classList.toggle('sel', i === rank);
   });
+}
+
+/** 選出方式に応じて選出傾向オプションの表示を切り替え */
+function toggleBiasOpts() {
+  const isBalance = getSelectedSelectionMode() === 'balance';
+  document.getElementById('biasOpts').style.display = isBalance ? '' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -378,6 +439,15 @@ function toggleBreak(id) {
   saveData();
 }
 
+/** レシオを ★→★★→★★★→★ とサイクル変更 */
+function cycleRank(id) {
+  const player = findPlayer(id);
+  if (!player) return;
+  player.rank = (player.rank + 1) % RANK_LABELS.length;
+  renderList();
+  saveData();
+}
+
 // ═══════════════════════════════════════════════════════
 //  Player Stats（ラウンド履歴に基づく統計）
 // ═══════════════════════════════════════════════════════
@@ -387,7 +457,7 @@ function getPlayCount(id) {
   return rounds.filter(r => r.t1.includes(id) || r.t2.includes(id)).length;
 }
 
-/** 観戦回数 */
+/** 待機回数 */
 function getSpecCount(id) {
   return rounds.filter(r => r.specs.includes(id)).length;
 }
@@ -405,14 +475,14 @@ function getLastPlayedIndex(id) {
 // ═══════════════════════════════════════════════════════
 
 /**
- * 参加者の選出優先度ソート
+ * ローテーション優先: 全員が均等に参加することを重視
  * 1. ★優先フラグ
- * 2. 前ラウンドの観戦者
- * 3. 累計観戦回数（多い人を優先）
+ * 2. 前ラウンドの待機者
+ * 3. 累計待機回数（多い人を優先）
  * 4. 最後の参加が古い順
  * 5. ランダム（登録順バイアス除去）
  */
-function sortBySelectionPriority(pool) {
+function sortForRotation(pool) {
   const lastRound = rounds.length ? rounds[rounds.length - 1] : null;
 
   return [...pool].sort((a, b) => {
@@ -434,14 +504,110 @@ function sortBySelectionPriority(pool) {
   });
 }
 
+/**
+ * バランス優先: レシオの均衡を重視（連戦を許可）
+ * レシオ合計が偶数になる組み合わせを選出し、0差分割を可能にする。
+ * ★優先者を先に確保し、残り枠を最適な構成で埋める。
+ * 同レシオ内では軽くローテーションを考慮する。
+ * @param {Array} pool - 候補プレイヤー
+ * @param {string} mode - 'rank_count' or 'rank_sum'
+ * @param {string} bias - 'low' or 'high'
+ */
+function sortForBalance(pool, mode, bias) {
+  const priorityPlayers = pool.filter(p => p.priority);
+  const normalPlayers = pool.filter(p => !p.priority);
+
+  const needed = Math.min(pool.length, TEAM_SIZE * 2);
+  const priorityCount = Math.min(priorityPlayers.length, needed);
+  const normalNeeded = needed - priorityCount;
+
+  // レシオごとにグループ分け（通常プレイヤーのみ）
+  const groups = [[], [], []];
+  for (const p of normalPlayers) {
+    groups[p.rank].push(p);
+  }
+
+  // 各グループ内は軽くローテーション考慮でソート
+  for (const g of groups) {
+    g.sort((a, b) => {
+      const d = getLastPlayedIndex(a.id) - getLastPlayedIndex(b.id);
+      return d !== 0 ? d : Math.random() - 0.5;
+    });
+  }
+
+  // 優先者のレシオ合計を算出
+  const priorityRankSum = priorityPlayers
+    .slice(0, priorityCount)
+    .reduce((s, p) => s + p.rank, 0);
+  const available = groups.map(g => g.length);
+
+  // 全構成を列挙し、最適なものを選ぶ
+  // 評価基準:
+  //   1. レシオ合計が偶数（0差分割の必要条件）
+  //   2. 均等レシオ分け時: 各レシオの人数が偶数（0差を保証）
+  //   3. 各レシオから均等に取る
+  let bestComp = null;
+  let bestScore = Infinity;
+
+  for (let c0 = 0; c0 <= Math.min(available[0], normalNeeded); c0++) {
+    for (let c1 = 0; c1 <= Math.min(available[1], normalNeeded - c0); c1++) {
+      const c2 = normalNeeded - c0 - c1;
+      if (c2 < 0 || c2 > available[2]) continue;
+
+      // 優先者のレシオも含めた各レシオの合計人数
+      const total = [c0, c1, c2];
+      for (const p of priorityPlayers.slice(0, priorityCount)) {
+        total[p.rank]++;
+      }
+
+      const totalRankSum = total[1] * 1 + total[2] * 2;
+      const isEven = totalRankSum % 2 === 0;
+
+      // 偶数でないと0差が不可能 → 大きなペナルティ
+      const evenSumPenalty = isEven ? 0 : 10000;
+      // 均等レシオ分け時のみ: 各レシオの人数が奇数だと差が出る
+      const oddCountPenalty = (mode === 'rank_count')
+        ? total.filter(c => c % 2 !== 0).length * 100
+        : 0;
+      // 各レシオから均等に取るほどよい
+      const spread = Math.abs(c0 - c1) + Math.abs(c1 - c2) + Math.abs(c0 - c2);
+      // 選出傾向: 低レシオ優先なら c0 が多い構成を、高レシオ優先なら c2 が多い構成を好む
+      const biasTie = (bias === 'low') ? -c0 : -c2;
+      const score = evenSumPenalty + oddCountPenalty + spread + biasTie * 0.1;
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestComp = [c0, c1, c2];
+      }
+    }
+  }
+
+  // 最適な構成で選出
+  const selected = [...priorityPlayers.slice(0, priorityCount)];
+  if (bestComp) {
+    for (let r = 0; r < 3; r++) {
+      selected.push(...groups[r].splice(0, bestComp[r]));
+    }
+  }
+
+  // 残り（待機者になる人）を末尾に
+  const selectedIds = new Set(selected.map(p => p.id));
+  const rest = pool.filter(p => !selectedIds.has(p.id));
+  return [...selected, ...rest];
+}
+
 /** ラウンド生成 */
 function generateRound() {
   const mode = getSelectedMode();
+  const selectionMode = getSelectedSelectionMode();
+  const bias = getSelectedBias();
   const pool = players.filter(p => !p.onBreak);
 
   if (pool.length < 2) return toast('参加可能な人が少なすぎます', 'warning');
 
-  const sorted = sortBySelectionPriority(pool);
+  const sorted = (selectionMode === 'balance')
+    ? sortForBalance(pool, mode, bias)
+    : sortForRotation(pool);
   const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
   const selected = sorted.slice(0, teamSlots);
   const spectators = sorted.slice(teamSlots);
@@ -453,6 +619,8 @@ function generateRound() {
   const round = {
     num: rounds.length + 1,
     mode,
+    selectionMode,
+    bias,
     t1: team1.map(p => p.id),
     t2: team2.map(p => p.id),
     specs: spectators.map(p => p.id),
@@ -467,6 +635,9 @@ function generateRound() {
   renderHistory();
   renderList();
   document.getElementById('roundLabel').textContent = 'ROUND ' + round.num;
+
+  const dup = findDuplicateRound(round);
+  if (dup !== null) toast('⚠ R' + dup + ' と同じ組み合わせです', 'danger');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -475,36 +646,50 @@ function generateRound() {
 
 /**
  * リロール
- * - チェックOFF: 現在のチームメンバーだけで再シャッフル
- * - チェックON : 👁観戦でない全員からプール再構築
- * - 👁観戦チェック者（優先観戦者）は常に除外
+ * - チェックOFF: 現在のチームメンバーだけで再シャッフル（選出変更なし）
+ * - チェックON : 👁待機でない全員から選出方式に従って再選出
+ * - 👁待機チェック者（優先待機者）は常に除外
+ * - ★優先者は必ずチームに入る
+ * - チーム分けモード・選出方式はUI の現在値を反映
  */
 function rerollRound() {
   if (!rounds.length) return;
 
   const current = rounds[rounds.length - 1];
   const mode = getSelectedMode();
+  const selectionMode = getSelectedSelectionMode();
+  const bias = getSelectedBias();
   const includeOverflow = document.getElementById('rerollIncludeOverflow').checked;
 
+  let selected;
   let pool;
+
   if (includeOverflow) {
+    // 全員から選出方式に従って再選出（generateRound と同じロジック）
     pool = players.filter(p => !p.onBreak);
+    const sorted = (selectionMode === 'balance')
+      ? sortForBalance(pool, mode, bias)
+      : sortForRotation(pool);
+    const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
+    selected = sorted.slice(0, teamSlots);
   } else {
+    // 現在のチームメンバーだけで再シャッフル
+    pool = players.filter(p => !p.onBreak);
     const teamIds = new Set([...current.t1, ...current.t2]);
-    pool = players.filter(p => teamIds.has(p.id) && !p.onBreak);
+    const teamMembers = pool.filter(p => teamIds.has(p.id));
+
+    // ★優先者を必ず残す
+    const priorityPlayers = teamMembers.filter(p => p.priority);
+    const normalPlayers = teamMembers.filter(p => !p.priority);
+    shuffle(normalPlayers);
+
+    const teamSlots = Math.min(teamMembers.length, TEAM_SIZE * 2);
+    selected = [
+      ...priorityPlayers.slice(0, teamSlots),
+      ...normalPlayers
+    ].slice(0, teamSlots);
   }
 
-  // ★優先者を必ずチームに入れるため、優先者と非優先者を分離
-  const priorityPlayers = pool.filter(p => p.priority);
-  const normalPlayers = pool.filter(p => !p.priority);
-  shuffle(normalPlayers);
-
-  // 優先者を先に確保し、残り枠を非優先者で埋める
-  const teamSlots = Math.min(pool.length, TEAM_SIZE * 2);
-  const selected = [
-    ...priorityPlayers.slice(0, teamSlots),
-    ...normalPlayers
-  ].slice(0, teamSlots);
   const selectedIds = new Set(selected.map(p => p.id));
 
   const [team1, team2] = (mode === 'rank_count')
@@ -512,6 +697,8 @@ function rerollRound() {
     : balanceByRankSum(selected);
 
   current.mode = mode;
+  current.selectionMode = selectionMode;
+  current.bias = bias;
   current.t1 = team1.map(p => p.id);
   current.t2 = team2.map(p => p.id);
   current.selectedIds = selected.map(p => p.id);
@@ -522,7 +709,13 @@ function rerollRound() {
   renderCurrent(current);
   renderHistory();
   renderList();
-  toast('リロール ' + current.rerolls + '回目 ／ ' + (MODE_LABELS[mode] || mode), 'warning');
+
+  const dup = findDuplicateRound(current);
+  if (dup !== null) {
+    toast('⚠ R' + dup + ' と同じ組み合わせです', 'danger');
+  } else {
+    toast('リロール ' + current.rerolls + '回目 ／ ' + (MODE_LABELS[mode] || mode), 'warning');
+  }
 }
 
 /** リロールボタン・オプションの表示切り替え */
@@ -545,21 +738,21 @@ function showRerollControls(visible) {
 // ═══════════════════════════════════════════════════════
 
 /**
- * Mode A: 均等ランク分け
- * 各ランクの人数が両チームで均等になるよう分配し、
- * 同ランク内でスワップして過去の同チームペアを最小化
+ * Mode A: 均等レシオ分け
+ * 各レシオの人数が両チームで均等になるよう分配し、
+ * 同レシオ内でスワップして過去の同チームペアを最小化
  */
 function balanceByRankCount(selected) {
   if (!selected.length) return [[], []];
   if (selected.length <= TEAM_SIZE) return [selected, []];
 
-  // ランクごとにグループ分け
+  // レシオごとにグループ分け
   const groups = [[], [], []];
   for (const player of selected) {
     groups[player.rank].push(player);
   }
 
-  // 各ランクの分配数を計算（half / ceil）
+  // 各レシオの分配数を計算（half / ceil）
   const splits = groups.map(g => [Math.floor(g.length / 2), Math.ceil(g.length / 2)]);
   let team1Count = splits.reduce((sum, [half]) => sum + half, 0);
 
@@ -579,7 +772,7 @@ function balanceByRankCount(selected) {
     }
   }
 
-  // ランクごとにシャッフルして分配
+  // レシオごとにシャッフルして分配
   const team1 = [];
   const team2 = [];
   for (let r = 0; r < 3; r++) {
@@ -588,16 +781,17 @@ function balanceByRankCount(selected) {
     team2.push(...shuffled.slice(splits[r][0]));
   }
 
-  // 最適化: 同ランク同士をスワップして過去の同チームペアを最小化
+  // 最適化: 同レシオ同士をスワップして過去の同チームペアを最小化
   optimizeSameRankSwaps(team1, team2);
 
   return [team1, team2];
 }
 
 /**
- * Mode B: ランク合計均等（スネークドラフト）
- * ランク値の高い順にスネークドラフトで分配し、
- * スワップして過去の同チームペアを最小化（ランク差の悪化は+1まで許容）
+ * Mode B: レシオ合計均等（スネークドラフト）
+ * レシオ値の高い順にスネークドラフトで分配後、
+ * 1. レシオ差を最小化するスワップ（0差を最優先）
+ * 2. レシオ差を悪化させない範囲で同チームペアを最小化
  */
 function balanceByRankSum(selected) {
   if (!selected.length) return [[], []];
@@ -612,19 +806,39 @@ function balanceByRankSum(selected) {
     (pattern[i % 10] === 0 ? team1 : team2).push(player);
   });
 
-  // 最適化: スワップして同チームペアを減らす（ランク差の悪化は+1まで許容）
+  // Pass 1: レシオ差を最小化するスワップ
+  let improved = true;
+  let iterations = 0;
+  while (improved && iterations++ < 300) {
+    improved = false;
+    for (let i = 0; i < team1.length; i++) {
+      for (let j = 0; j < team2.length; j++) {
+        const before = calcRankDiff(team1, team2);
+        if (before === 0) break;
+        [team1[i], team2[j]] = [team2[j], team1[i]];
+        if (calcRankDiff(team1, team2) < before) {
+          improved = true;
+        } else {
+          [team1[i], team2[j]] = [team2[j], team1[i]];
+        }
+      }
+      if (calcRankDiff(team1, team2) === 0) break;
+    }
+  }
+
+  // Pass 2: レシオ差を悪化させずに同チームペアを最小化
   if (rounds.length > 0) {
-    let improved = true;
-    let iterations = 0;
+    const targetDiff = calcRankDiff(team1, team2);
+    improved = true;
+    iterations = 0;
     while (improved && iterations++ < 300) {
       improved = false;
       for (let i = 0; i < team1.length; i++) {
         for (let j = 0; j < team2.length; j++) {
           const currentScore = calcSameTeamScore(team1, team2);
-          const currentDiff = calcRankDiff(team1, team2);
           [team1[i], team2[j]] = [team2[j], team1[i]];
           if (calcSameTeamScore(team1, team2) < currentScore
-            && calcRankDiff(team1, team2) <= currentDiff + 1) {
+            && calcRankDiff(team1, team2) <= targetDiff) {
             improved = true;
           } else {
             [team1[i], team2[j]] = [team2[j], team1[i]];
@@ -638,8 +852,8 @@ function balanceByRankSum(selected) {
 }
 
 /**
- * 同ランクスワップ最適化（balanceByRankCount 用）
- * ランク均等を崩さずに過去の同チームペアを最小化
+ * 同レシオスワップ最適化（balanceByRankCount 用）
+ * レシオ均等を崩さずに過去の同チームペアを最小化
  */
 function optimizeSameRankSwaps(team1, team2) {
   if (rounds.length === 0) return;
@@ -693,19 +907,49 @@ function calcSameTeamScore(team1, team2) {
   return score;
 }
 
-/** 両チームのランク合計の差 */
+/** 両チームのレシオ合計の差 */
 function calcRankDiff(team1, team2) {
   const sum1 = team1.reduce((sum, p) => sum + p.rank, 0);
   const sum2 = team2.reduce((sum, p) => sum + p.rank, 0);
   return Math.abs(sum1 - sum2);
 }
 
-/** ID 配列からランク合計を計算 */
+/** ID 配列からレシオ合計を計算 */
 function calcRankSum(ids) {
   return ids.reduce((sum, id) => {
     const player = findPlayer(id);
     return sum + (player ? player.rank : 0);
   }, 0);
+}
+
+/**
+ * 現在のラウンドと過去ラウンドのチーム構成が一致するか検出
+ * Blue/Red 逆転も検出する
+ * @returns {number|null} 一致したラウンド番号、なければ null
+ */
+function findDuplicateRound(currentRound) {
+  const setA = new Set(currentRound.t1);
+  const setB = new Set(currentRound.t2);
+
+  for (const past of rounds) {
+    if (past.num === currentRound.num) continue;
+
+    const pastSetA = new Set(past.t1);
+    const pastSetB = new Set(past.t2);
+
+    // サイズが違えばスキップ
+    if (setA.size !== pastSetA.size || setB.size !== pastSetB.size) continue;
+
+    // 同順一致: Blue=Blue かつ Red=Red
+    const sameOrder = currentRound.t1.every(id => pastSetA.has(id))
+      && currentRound.t2.every(id => pastSetB.has(id));
+    // 逆転一致: Blue=Red かつ Red=Blue
+    const swapped = currentRound.t1.every(id => pastSetB.has(id))
+      && currentRound.t2.every(id => pastSetA.has(id));
+
+    if (sameOrder || swapped) return past.num;
+  }
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -726,12 +970,12 @@ function renderList() {
     const specCount = getSpecCount(player.id);
 
     return `<div class="player-item${player.onBreak ? ' on-break' : ''}">
-      <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}">${RANK_LABELS[player.rank]}</div>
+      <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" onclick="cycleRank(${player.id})" title="クリックでレシオ変更">${RANK_LABELS[player.rank]}</div>
       <div class="flex-grow-1 text-truncate" style="max-width:72px;">${escapeHtml(player.name)}</div>
       <span class="stat-pill"><i class="bi bi-controller" style="font-size:.58rem;"></i>&nbsp;<span class="v">${playCount}</span></span>
       <span class="stat-pill"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
       <button class="btn-flag${player.priority ? ' on-pri' : ''}" onclick="togglePriority(${player.id})">★優先</button>
-      <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁観戦</button>
+      <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁待機</button>
       <button class="btn btn-link btn-sm p-0 text-danger ms-1" onclick="deletePlayer(${player.id})"><i class="bi bi-x-lg"></i></button>
     </div>`;
   }).join('');
@@ -757,8 +1001,11 @@ function renderCurrent(round) {
   const rankSum2 = calcRankSum(round.t2);
   const diff = Math.abs(rankSum1 - rankSum2);
   const modeLabel = MODE_LABELS[round.mode] || round.mode;
+  const selLabel = SELECTION_LABELS[round.selectionMode] || '';
+  const biasLabel = (round.selectionMode === 'balance' && round.bias) ? BIAS_LABELS[round.bias] || '' : '';
+  const dupRound = findDuplicateRound(round);
 
-  // ランク分布情報
+  // レシオ分布情報
   const rankDistInfo = RANK_LABELS.map((_, rank) => {
     const count1 = team1.filter(p => p.rank === rank).length;
     const count2 = team2.filter(p => p.rank === rank).length;
@@ -792,15 +1039,18 @@ function renderCurrent(round) {
     </div>
     <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
       <span class="bbadge ${diff === 0 ? 'bg-success-subtle text-success-emphasis' : 'bg-warning-subtle text-warning-emphasis'}">
-        <i class="bi bi-${diff === 0 ? 'check-circle' : 'exclamation-triangle'} me-1"></i>ランク差 ${diff === 0 ? '均等' : diff}
+        <i class="bi bi-${diff === 0 ? 'check-circle' : 'exclamation-triangle'} me-1"></i>レシオ差 ${diff === 0 ? '均等' : diff}
       </span>
       <span class="bbadge bg-light text-secondary border"><i class="bi bi-sliders me-1"></i>${modeLabel}</span>
+      ${selLabel ? `<span class="bbadge bg-light text-secondary border"><i class="bi bi-people me-1"></i>${selLabel}</span>` : ''}
+      ${biasLabel ? `<span class="bbadge bg-light text-secondary border"><i class="bi bi-sort-numeric-down me-1"></i>${biasLabel}</span>` : ''}
       ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>リロール ${round.rerolls}回</span>` : ''}
+      ${dupRound !== null ? `<span class="bbadge bg-danger-subtle text-danger-emphasis"><i class="bi bi-exclamation-octagon me-1"></i>R${dupRound} と同じ組み合わせ</span>` : ''}
       ${rankDistInfo}
     </div>
     <div class="spec-section">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="section-label mb-0"><i class="bi bi-eye me-1"></i>観戦者</div>
+        <div class="section-label mb-0"><i class="bi bi-eye me-1"></i>待機者</div>
         <small style="color:var(--text-muted);font-size:.7rem;">次ラウンド優先参加</small>
       </div>
       <div class="d-flex flex-wrap gap-2">
@@ -809,9 +1059,9 @@ function renderCurrent(round) {
               <span class="rank-badge ${RANK_BADGE_CLASSES[p.rank]}" style="width:18px;height:18px;font-size:.55rem;">${RANK_LABELS[p.rank]}</span>
               ${escapeHtml(p.name)}${p.priority ? ' <i class="bi bi-star-fill" style="color:var(--gold);font-size:.65rem;"></i>' : ''}
             </div>`).join('')
-          : '<span class="empty-state">観戦者なし（全員参加）</span>'
+          : '<span class="empty-state">待機者なし（全員参加）</span>'
         }
-        ${breaks.length ? `<span class="ms-2" style="font-size:.75rem;color:#888;align-self:center;">| 👁観戦: ${breaks.map(p => escapeHtml(p.name)).join(', ')}</span>` : ''}
+        ${breaks.length ? `<span class="ms-2" style="font-size:.75rem;color:#888;align-self:center;">| 👁待機: ${breaks.map(p => escapeHtml(p.name)).join(', ')}</span>` : ''}
       </div>
     </div>`;
 }
@@ -843,11 +1093,15 @@ function renderHistory() {
     const team2Names = round.t2.map(id => findPlayer(id)?.name || '?').join(', ');
     const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
     const modeLabel = MODE_LABELS[round.mode] || round.mode;
+    const selLabel = SELECTION_LABELS[round.selectionMode] || '';
+    const biasLabel = (round.selectionMode === 'balance' && round.bias) ? BIAS_LABELS[round.bias] || '' : '';
 
     return `<div class="history-item">
       <div class="d-flex align-items-center gap-2 mb-1">
         <span class="r-badge">R${round.num}</span>
         <span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${modeLabel}</span>
+        ${selLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${selLabel}</span>` : ''}
+        ${biasLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${biasLabel}</span>` : ''}
         ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>${round.rerolls}回</span>` : ''}
       </div>
       <div style="color:var(--text-muted);">
@@ -857,7 +1111,7 @@ function renderHistory() {
         <span style="color:var(--red);font-weight:600;">R</span>
         <span style="color:var(--text);"> ${escapeHtml(team2Names)}</span>
       </div>
-      ${specNames ? `<div class="mt-1" style="font-size:.72rem;color:var(--text-muted);"><i class="bi bi-eye me-1"></i>観戦者: ${escapeHtml(specNames)}</div>` : ''}
+      ${specNames ? `<div class="mt-1" style="font-size:.72rem;color:var(--text-muted);"><i class="bi bi-eye me-1"></i>待機者: ${escapeHtml(specNames)}</div>` : ''}
     </div>`;
   }).join('');
 }

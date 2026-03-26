@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOL TEAM DIVIDER v1.00</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+  --gold:      #B8922A;
+  --gold-lt:   #D4A83A;
+  --gold-bg:   #FBF5E6;
+  --gold-line: #E8D5A0;
+  --blue:      #0098B8;
+  --blue-bg:   #E8F6FA;
+  --blue-bd:   #9DCEDC;
+  --red:       #C83030;
+  --red-bg:    #FAE8E8;
+  --red-bd:    #DCA0A0;
+  --rank0-c:   #2060C0;
+  --rank0-bg:  #E8EEFA;
+  --rank1-c:   #208050;
+  --rank1-bg:  #E6F5EE;
+  --rank2-c:   #A07010;
+  --rank2-bg:  #FAF3E0;
+  --body-bg:   #FFFFFF;
+  --card-bg:   #FFFFFF;
+  --sidebar-bg:#F8F8F8;
+  --border:    #E0E0E0;
+  --text:      #1A1A1A;
+  --text-muted:#888888;
+}
+body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); color:var(--text); font-size:14px; }
+
+.app-header {
+  background:linear-gradient(135deg,#2A1E0A,#1A1206);
+  border-bottom:3px solid var(--gold);
+  padding:.9rem 1.5rem;
+  display:flex; align-items:center; gap:1rem;
+}
+.app-header h1 { font-family:'Cinzel',serif; font-size:1.15rem; letter-spacing:4px; color:var(--gold-lt); margin:0; text-shadow:0 0 20px rgba(200,155,60,.4); }
+.app-header .version { font-family:'Cinzel',serif; font-size:.6rem; letter-spacing:1px; color:#786040; margin-left:.5rem; vertical-align:middle; }
+.app-header p  { font-size:.65rem; letter-spacing:2px; color:#786040; margin:0; }
+
+.sidebar { background:var(--sidebar-bg); border-right:1px solid var(--border); min-height:calc(100vh - 62px); }
+
+.section-label {
+  font-family:'Cinzel',serif; font-size:.62rem; letter-spacing:3px; color:var(--gold);
+  text-transform:uppercase; padding-bottom:.35rem; border-bottom:2px solid var(--gold-line); margin-bottom:.7rem;
+}
+
+.form-control,.form-select { border-color:var(--border)!important; background-color:var(--card-bg)!important; font-size:.84rem; color:var(--text)!important; }
+.form-control:focus { border-color:var(--gold)!important; box-shadow:0 0 0 .2rem rgba(184,146,42,.2)!important; }
+
+.rank-group .btn { flex:1; font-size:.78rem; padding:.3rem; border-width:1.5px; }
+.btn-rank-0 { color:var(--rank0-c)!important; border-color:var(--rank0-c)!important; background:var(--rank0-bg)!important; }
+.btn-rank-1 { color:var(--rank1-c)!important; border-color:var(--rank1-c)!important; background:var(--rank1-bg)!important; }
+.btn-rank-2 { color:var(--rank2-c)!important; border-color:var(--rank2-c)!important; background:var(--rank2-bg)!important; }
+.btn-rank-0.sel { background:var(--rank0-c)!important; color:#fff!important; font-weight:700; }
+.btn-rank-1.sel { background:var(--rank1-c)!important; color:#fff!important; font-weight:700; }
+.btn-rank-2.sel { background:var(--rank2-c)!important; color:#fff!important; font-weight:700; }
+
+.btn-gold { background:linear-gradient(135deg,#8A6818,var(--gold-lt)); border:none; color:#fff; font-family:'Cinzel',serif; font-size:.78rem; font-weight:700; letter-spacing:2px; transition:opacity .15s; }
+.btn-gold:hover { opacity:.88; color:#fff; }
+
+.btn-generate { background:linear-gradient(135deg,#006880,var(--blue)); border:none; color:#fff; font-family:'Cinzel',serif; font-size:.8rem; font-weight:700; letter-spacing:2px; transition:opacity .15s,transform .1s; }
+.btn-generate:hover { opacity:.88; color:#fff; }
+.btn-generate:active { transform:scale(.97); }
+
+.btn-reroll { background:linear-gradient(135deg,#7a4a10,#C87820); border:none; color:#fff; font-family:'Cinzel',serif; font-size:.8rem; font-weight:700; letter-spacing:2px; transition:opacity .15s,transform .1s; }
+.btn-reroll:hover { opacity:.88; color:#fff; }
+.btn-reroll:active { transform:scale(.97); }
+.reroll-badge { font-size:.62rem; padding:.08rem .35rem; border-radius:2rem; background:rgba(200,120,32,.15); color:#C87820; border:1px solid rgba(200,120,32,.4); }
+
+/* Player list */
+.player-scroll { max-height:400px; overflow-y:auto; }
+.player-item { display:flex; align-items:center; gap:.35rem; padding:.4rem .55rem; background:var(--card-bg); border:1px solid var(--border); border-radius:.35rem; transition:border-color .15s; }
+.player-item:hover { border-color:var(--gold); }
+.player-item.on-break { opacity:.6; background:#f4f4f4; }
+
+.rank-badge { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.6rem; font-weight:700; flex-shrink:0; border:1.5px solid; }
+.rb-0 { color:var(--rank0-c); border-color:var(--rank0-c); background:var(--rank0-bg); }
+.rb-1 { color:var(--rank1-c); border-color:var(--rank1-c); background:var(--rank1-bg); }
+.rb-2 { color:var(--rank2-c); border-color:var(--rank2-c); background:var(--rank2-bg); }
+
+.stat-pill { font-size:.62rem; padding:.1rem .38rem; border-radius:2rem; background:#f4f4f4; color:var(--text-muted); border:1px solid var(--border); white-space:nowrap; }
+.stat-pill .v { font-weight:700; color:var(--text); }
+
+.btn-flag { padding:.15rem .32rem; font-size:.67rem; border-radius:.25rem; border:1px solid var(--border); background:transparent; color:var(--text-muted); transition:all .15s; white-space:nowrap; line-height:1.4; cursor:pointer; }
+.btn-flag.on-pri  { border-color:var(--gold);  color:var(--gold);  background:var(--gold-bg); }
+.btn-flag.on-brk  { border-color:#888;          color:#666;         background:#f0f0f0; }
+
+/* Mode card */
+.mode-card { background:var(--card-bg); border:1px solid var(--border); border-radius:.5rem; padding:.75rem; }
+.mode-card .form-check-input:checked { background-color:var(--gold); border-color:var(--gold); }
+.mode-card .form-check-label { font-size:.82rem; cursor:pointer; }
+
+/* Team cards */
+.team-card { background:var(--card-bg); border-radius:.5rem; padding:1rem; border:1.5px solid; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.team-blue { border-color:var(--blue-bd); background:linear-gradient(160deg,var(--blue-bg),#fff 60%); }
+.team-red  { border-color:var(--red-bd);  background:linear-gradient(160deg,var(--red-bg),#fff 60%); }
+.team-title { font-family:'Cinzel',serif; font-size:.85rem; letter-spacing:2px; }
+.team-blue .team-title { color:var(--blue); }
+.team-red  .team-title { color:var(--red); }
+
+.team-player { display:flex; align-items:center; gap:.4rem; padding:.35rem .45rem; border-radius:.3rem; font-size:.84rem; transition:background .1s; }
+.team-player:hover { background:rgba(0,0,0,.03); }
+.p-num { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.58rem; color:var(--text-muted); border:1px solid var(--border); background:#f8f8f8; flex-shrink:0; }
+
+.spec-section { background:var(--card-bg); border:1px solid var(--border); border-radius:.4rem; padding:.75rem; }
+.spec-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .55rem; border-radius:2rem; background:#f4f4f4; border:1px solid var(--border); font-size:.78rem; }
+.spec-chip.has-pri { border-color:var(--gold); background:var(--gold-bg); }
+
+.history-scroll { max-height:240px; overflow-y:auto; }
+.history-item { background:var(--card-bg); border:1px solid var(--border); border-radius:.35rem; padding:.5rem .75rem; font-size:.78rem; transition:border-color .15s; }
+.history-item:hover { border-color:var(--gold-line); }
+.r-badge { font-family:'Cinzel',serif; font-size:.65rem; color:var(--gold); letter-spacing:1px; }
+
+.empty-state { color:var(--text-muted); font-size:.8rem; font-style:italic; }
+.no-round-msg { text-align:center; padding:3rem 1rem; color:var(--text-muted); font-style:italic; border:1.5px dashed var(--border); border-radius:.5rem; background:var(--card-bg); }
+.bbadge { font-size:.68rem; padding:.15rem .5rem; border-radius:2rem; font-weight:500; }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>LOL TEAM DIVIDER <span class="version">v1.00</span></h1>
+    <p>BALANCED MATCHMAKING SYSTEM</p>
+  </div>
+</div>
+
+<div class="container-fluid px-0">
+  <div class="row g-0">
+
+    <!-- Sidebar -->
+    <div class="col-12 col-md-4 col-xl-3 sidebar p-3 d-flex flex-column gap-3">
+
+      <div>
+        <div class="section-label"><i class="bi bi-person-plus me-1"></i>参加者登録</div>
+        <div class="d-flex flex-column gap-2">
+          <input type="text" id="playerName" class="form-control" placeholder="プレイヤー名" maxlength="20"
+            onkeydown="if(event.key==='Enter')addPlayer()">
+          <div class="d-flex gap-1 rank-group" id="rankGroup">
+            <button class="btn btn-rank-0 sel" onclick="selectRank(0)">初 級</button>
+            <button class="btn btn-rank-1"     onclick="selectRank(1)">中 級</button>
+            <button class="btn btn-rank-2"     onclick="selectRank(2)">上 級</button>
+          </div>
+          <button class="btn btn-gold w-100 py-2" onclick="addPlayer()"><i class="bi bi-plus-lg me-1"></i>追加</button>
+        </div>
+      </div>
+
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-end mb-1">
+          <div class="section-label mb-0"><i class="bi bi-people me-1"></i>参加者リスト</div>
+          <small class="text-muted" id="playerCount">0 人</small>
+        </div>
+        <div class="player-scroll d-flex flex-column gap-1 mt-2" id="playerList">
+          <div class="empty-state">参加者を追加してください</div>
+        </div>
+      </div>
+
+      <div class="border-top pt-2 mt-auto" style="border-color:var(--border)!important;">
+        <div style="font-size:.7rem;color:var(--text-muted);line-height:2.1;">
+          <div><i class="bi bi-controller" style="font-size:.65rem;"></i> 参加 ／ <i class="bi bi-eye" style="font-size:.65rem;"></i> 観戦 （累計回数）</div>
+          <div><span style="color:var(--gold);font-weight:500;">★優先</span> = 次ラウンドで必ず参加</div>
+          <div><span style="color:#888;font-weight:500;">👁観戦</span> = 今ラウンドを欠席し観戦者になる</div>
+          <div>観戦者は次ラウンドで自動優先参加</div>
+        </div>
+        <button class="btn btn-outline-danger btn-sm w-100 mt-2" style="font-size:.72rem;" onclick="clearSave()">
+          <i class="bi bi-trash me-1"></i>保存データを削除
+        </button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="col-12 col-md-8 col-xl-9 p-3 d-flex flex-column gap-3">
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span style="font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:2px;color:var(--gold);" id="roundLabel">ROUND —</span>
+        <button class="btn btn-generate px-3 py-2" onclick="generateRound()">
+          <i class="bi bi-shuffle me-1"></i>次のラウンド生成
+        </button>
+        <button class="btn btn-reroll px-3 py-2 d-none" id="rerollBtn" onclick="rerollRound()">
+          <i class="bi bi-arrow-repeat me-1"></i>リロール
+        </button>
+        <div class="d-none align-items-center gap-2" id="rerollOpts">
+          <div class="form-check form-check-inline mb-0" style="font-size:.78rem;">
+            <input class="form-check-input" type="checkbox" id="rerollIncludeOverflow">
+            <label class="form-check-label" for="rerollIncludeOverflow">枠不足の観戦者を含める</label>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="resetRounds()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>履歴リセット
+        </button>
+      </div>
+
+      <!-- Mode -->
+      <div class="mode-card">
+        <div class="section-label"><i class="bi bi-sliders me-1"></i>チーム分けモード</div>
+        <div class="d-flex gap-4 flex-wrap">
+          <div class="form-check mb-0">
+            <input class="form-check-input" type="radio" name="mode" id="mRC" value="rank_count" checked>
+            <label class="form-check-label" for="mRC">
+              <strong>均等ランク分け</strong>
+              <span class="ms-1 badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:400;font-size:.65rem;">標準</span>
+              <div style="font-size:.72rem;color:var(--text-muted);">各ランクの人数が両チームで均等になるよう分配</div>
+            </label>
+          </div>
+          <div class="form-check mb-0">
+            <input class="form-check-input" type="radio" name="mode" id="mRS" value="rank_sum">
+            <label class="form-check-label" for="mRS">
+              <strong>ランク合計均等</strong>
+              <span class="ms-1 badge" style="background:#f8f8f8;color:var(--text-muted);border:1px solid var(--border);font-weight:400;font-size:.65rem;">オプション</span>
+              <div style="font-size:.72rem;color:var(--text-muted);">スネークドラフトでランク合計が均等になるよう分配</div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="teamsContainer">
+        <div class="no-round-msg">「次のラウンド生成」を押してチーム分けを開始</div>
+      </div>
+
+      <div>
+        <div class="section-label"><i class="bi bi-clock-history me-1"></i>ラウンド履歴</div>
+        <div class="history-scroll d-flex flex-column gap-1" id="historyList">
+          <div class="empty-state">まだ履歴がありません</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index:9999">
+  <div id="appToast" class="toast align-items-center text-white border-0">
+    <div class="d-flex">
+      <div class="toast-body fw-bold" id="toastMsg"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+// ═══════════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════════
+
+let players = [];
+let rounds = [];
+let selectedRank = 0;
+let nextPlayerId = 0;
+
+// ═══════════════════════════════════════════════════════
+//  Constants
+// ═══════════════════════════════════════════════════════
+
+const TEAM_SIZE = 5;
+const RANK_LABELS = ['初', '中', '上'];
+const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
+const MODE_LABELS = { rank_count: '均等ランク', rank_sum: '合計均等' };
+const SAVE_KEY = 'lol_td_players';
+
+// ═══════════════════════════════════════════════════════
+//  Utilities
+// ═══════════════════════════════════════════════════════
+
+/** HTML エスケープ */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Fisher-Yates シャッフル（in-place） */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** ID からプレイヤーを検索 */
+function findPlayer(id) {
+  return players.find(p => p.id === id);
+}
+
+/** 現在選択中のモードを取得 */
+function getSelectedMode() {
+  return document.querySelector('input[name="mode"]:checked').value;
+}
+
+/** トースト通知 */
+function toast(msg, type = 'primary') {
+  const el = document.getElementById('appToast');
+  const backgrounds = {
+    primary: '#0d6efd',
+    warning: '#d97706',
+    secondary: '#6c757d',
+    danger: '#dc3545'
+  };
+  el.style.background = backgrounds[type] || backgrounds.primary;
+  document.getElementById('toastMsg').textContent = msg;
+  bootstrap.Toast.getOrCreateInstance(el, { delay: 2500 }).show();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Rank Selector
+// ═══════════════════════════════════════════════════════
+
+function selectRank(rank) {
+  selectedRank = rank;
+  document.querySelectorAll('#rankGroup .btn').forEach((btn, i) => {
+    btn.classList.toggle('sel', i === rank);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  Player CRUD
+// ═══════════════════════════════════════════════════════
+
+function addPlayer() {
+  const input = document.getElementById('playerName');
+  const name = input.value.trim();
+
+  if (!name) return toast('名前を入力してください', 'warning');
+  if (players.length >= 20) return toast('最大20人までです', 'warning');
+  if (players.some(p => p.name === name)) return toast('同名が既に存在します', 'warning');
+
+  players.push({
+    id: nextPlayerId++,
+    name,
+    rank: selectedRank,
+    priority: false,
+    onBreak: false
+  });
+
+  input.value = '';
+  input.focus();
+  renderList();
+  saveData();
+}
+
+function deletePlayer(id) {
+  players = players.filter(p => p.id !== id);
+  renderList();
+  saveData();
+}
+
+function togglePriority(id) {
+  const player = findPlayer(id);
+  if (!player) return;
+  player.priority = !player.priority;
+  if (player.priority) player.onBreak = false;
+  renderList();
+  saveData();
+}
+
+function toggleBreak(id) {
+  const player = findPlayer(id);
+  if (!player) return;
+  player.onBreak = !player.onBreak;
+  if (player.onBreak) player.priority = false;
+  renderList();
+  saveData();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Player Stats（ラウンド履歴に基づく統計）
+// ═══════════════════════════════════════════════════════
+
+/** 参加回数 */
+function getPlayCount(id) {
+  return rounds.filter(r => r.t1.includes(id) || r.t2.includes(id)).length;
+}
+
+/** 観戦回数 */
+function getSpecCount(id) {
+  return rounds.filter(r => r.specs.includes(id)).length;
+}
+
+/** 最後に参加したラウンドのインデックス（-1 = 未参加） */
+function getLastPlayedIndex(id) {
+  for (let i = rounds.length - 1; i >= 0; i--) {
+    if (rounds[i].t1.includes(id) || rounds[i].t2.includes(id)) return i;
+  }
+  return -1;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Round Generation
+// ═══════════════════════════════════════════════════════
+
+/**
+ * 参加者の選出優先度ソート
+ * 1. ★優先フラグ
+ * 2. 前ラウンドの観戦者
+ * 3. 累計観戦回数（多い人を優先）
+ * 4. 最後の参加が古い順
+ * 5. ランダム（登録順バイアス除去）
+ */
+function sortBySelectionPriority(pool) {
+  const lastRound = rounds.length ? rounds[rounds.length - 1] : null;
+
+  return [...pool].sort((a, b) => {
+    if (a.priority !== b.priority) return b.priority - a.priority;
+
+    if (lastRound) {
+      const aWasSpec = lastRound.specs.includes(a.id);
+      const bWasSpec = lastRound.specs.includes(b.id);
+      if (aWasSpec !== bWasSpec) return bWasSpec ? 1 : -1;
+    }
+
+    const specDiff = getSpecCount(b.id) - getSpecCount(a.id);
+    if (specDiff !== 0) return specDiff;
+
+    const playedDiff = getLastPlayedIndex(a.id) - getLastPlayedIndex(b.id);
+    if (playedDiff !== 0) return playedDiff;
+
+    return Math.random() - 0.5;
+  });
+}
+
+/** ラウンド生成 */
+function generateRound() {
+  const mode = getSelectedMode();
+  const pool = players.filter(p => !p.onBreak);
+
+  if (pool.length < 2) return toast('参加可能な人が少なすぎます', 'warning');
+
+  const sorted = sortBySelectionPriority(pool);
+  const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
+  const selected = sorted.slice(0, teamSlots);
+  const spectators = sorted.slice(teamSlots);
+
+  const [team1, team2] = (mode === 'rank_count')
+    ? balanceByRankCount(selected)
+    : balanceByRankSum(selected);
+
+  const round = {
+    num: rounds.length + 1,
+    mode,
+    t1: team1.map(p => p.id),
+    t2: team2.map(p => p.id),
+    specs: spectators.map(p => p.id),
+    breaks: players.filter(p => p.onBreak).map(p => p.id),
+    selectedIds: selected.map(p => p.id),
+    rerolls: 0
+  };
+
+  rounds.push(round);
+  showRerollControls(true);
+  renderCurrent(round);
+  renderHistory();
+  renderList();
+  document.getElementById('roundLabel').textContent = 'ROUND ' + round.num;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Reroll
+// ═══════════════════════════════════════════════════════
+
+/**
+ * リロール
+ * - チェックOFF: 現在のチームメンバーだけで再シャッフル
+ * - チェックON : 👁観戦でない全員からプール再構築
+ * - 👁観戦チェック者（優先観戦者）は常に除外
+ */
+function rerollRound() {
+  if (!rounds.length) return;
+
+  const current = rounds[rounds.length - 1];
+  const mode = getSelectedMode();
+  const includeOverflow = document.getElementById('rerollIncludeOverflow').checked;
+
+  let pool;
+  if (includeOverflow) {
+    pool = players.filter(p => !p.onBreak);
+  } else {
+    const teamIds = new Set([...current.t1, ...current.t2]);
+    pool = players.filter(p => teamIds.has(p.id) && !p.onBreak);
+  }
+
+  // ★優先者を必ずチームに入れるため、優先者と非優先者を分離
+  const priorityPlayers = pool.filter(p => p.priority);
+  const normalPlayers = pool.filter(p => !p.priority);
+  shuffle(normalPlayers);
+
+  // 優先者を先に確保し、残り枠を非優先者で埋める
+  const teamSlots = Math.min(pool.length, TEAM_SIZE * 2);
+  const selected = [
+    ...priorityPlayers.slice(0, teamSlots),
+    ...normalPlayers
+  ].slice(0, teamSlots);
+  const selectedIds = new Set(selected.map(p => p.id));
+
+  const [team1, team2] = (mode === 'rank_count')
+    ? balanceByRankCount(selected)
+    : balanceByRankSum(selected);
+
+  current.mode = mode;
+  current.t1 = team1.map(p => p.id);
+  current.t2 = team2.map(p => p.id);
+  current.selectedIds = selected.map(p => p.id);
+  current.specs = players.filter(p => !p.onBreak && !selectedIds.has(p.id)).map(p => p.id);
+  current.breaks = players.filter(p => p.onBreak).map(p => p.id);
+  current.rerolls = (current.rerolls || 0) + 1;
+
+  renderCurrent(current);
+  renderHistory();
+  renderList();
+  toast('リロール ' + current.rerolls + '回目 ／ ' + (MODE_LABELS[mode] || mode), 'warning');
+}
+
+/** リロールボタン・オプションの表示切り替え */
+function showRerollControls(visible) {
+  const btn = document.getElementById('rerollBtn');
+  const opts = document.getElementById('rerollOpts');
+  if (visible) {
+    btn.classList.remove('d-none');
+    opts.classList.remove('d-none');
+    opts.classList.add('d-flex');
+  } else {
+    btn.classList.add('d-none');
+    opts.classList.add('d-none');
+    opts.classList.remove('d-flex');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Team Balancing Algorithms
+// ═══════════════════════════════════════════════════════
+
+/**
+ * Mode A: 均等ランク分け
+ * 各ランクの人数が両チームで均等になるよう分配し、
+ * 同ランク内でスワップして過去の同チームペアを最小化
+ */
+function balanceByRankCount(selected) {
+  if (!selected.length) return [[], []];
+  if (selected.length <= TEAM_SIZE) return [selected, []];
+
+  // ランクごとにグループ分け
+  const groups = [[], [], []];
+  for (const player of selected) {
+    groups[player.rank].push(player);
+  }
+
+  // 各ランクの分配数を計算（half / ceil）
+  const splits = groups.map(g => [Math.floor(g.length / 2), Math.ceil(g.length / 2)]);
+  let team1Count = splits.reduce((sum, [half]) => sum + half, 0);
+
+  // 合計が TEAM_SIZE になるよう調整
+  for (let r = 0; r < 3 && team1Count < TEAM_SIZE; r++) {
+    if (splits[r][1] > splits[r][0]) {
+      splits[r][0]++;
+      splits[r][1]--;
+      team1Count++;
+    }
+  }
+  for (let r = 0; r < 3 && team1Count > TEAM_SIZE; r++) {
+    if (splits[r][0] > 0) {
+      splits[r][0]--;
+      splits[r][1]++;
+      team1Count--;
+    }
+  }
+
+  // ランクごとにシャッフルして分配
+  const team1 = [];
+  const team2 = [];
+  for (let r = 0; r < 3; r++) {
+    const shuffled = shuffle([...groups[r]]);
+    team1.push(...shuffled.slice(0, splits[r][0]));
+    team2.push(...shuffled.slice(splits[r][0]));
+  }
+
+  // 最適化: 同ランク同士をスワップして過去の同チームペアを最小化
+  optimizeSameRankSwaps(team1, team2);
+
+  return [team1, team2];
+}
+
+/**
+ * Mode B: ランク合計均等（スネークドラフト）
+ * ランク値の高い順にスネークドラフトで分配し、
+ * スワップして過去の同チームペアを最小化（ランク差の悪化は+1まで許容）
+ */
+function balanceByRankSum(selected) {
+  if (!selected.length) return [[], []];
+  if (selected.length <= TEAM_SIZE) return [selected, []];
+
+  const sorted = [...selected].sort((a, b) => b.rank - a.rank);
+  const team1 = [];
+  const team2 = [];
+  const pattern = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1];
+
+  sorted.forEach((player, i) => {
+    (pattern[i % 10] === 0 ? team1 : team2).push(player);
+  });
+
+  // 最適化: スワップして同チームペアを減らす（ランク差の悪化は+1まで許容）
+  if (rounds.length > 0) {
+    let improved = true;
+    let iterations = 0;
+    while (improved && iterations++ < 300) {
+      improved = false;
+      for (let i = 0; i < team1.length; i++) {
+        for (let j = 0; j < team2.length; j++) {
+          const currentScore = calcSameTeamScore(team1, team2);
+          const currentDiff = calcRankDiff(team1, team2);
+          [team1[i], team2[j]] = [team2[j], team1[i]];
+          if (calcSameTeamScore(team1, team2) < currentScore
+            && calcRankDiff(team1, team2) <= currentDiff + 1) {
+            improved = true;
+          } else {
+            [team1[i], team2[j]] = [team2[j], team1[i]];
+          }
+        }
+      }
+    }
+  }
+
+  return [team1, team2];
+}
+
+/**
+ * 同ランクスワップ最適化（balanceByRankCount 用）
+ * ランク均等を崩さずに過去の同チームペアを最小化
+ */
+function optimizeSameRankSwaps(team1, team2) {
+  if (rounds.length === 0) return;
+
+  let improved = true;
+  let iterations = 0;
+  while (improved && iterations++ < 300) {
+    improved = false;
+    for (let i = 0; i < team1.length; i++) {
+      for (let j = 0; j < team2.length; j++) {
+        if (team1[i].rank !== team2[j].rank) continue;
+        const before = calcSameTeamScore(team1, team2);
+        [team1[i], team2[j]] = [team2[j], team1[i]];
+        if (calcSameTeamScore(team1, team2) < before) {
+          improved = true;
+        } else {
+          [team1[i], team2[j]] = [team2[j], team1[i]];
+        }
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Scoring Functions
+// ═══════════════════════════════════════════════════════
+
+/**
+ * 過去ラウンドで同じチームだったペアの数を計算
+ * 値が小さいほど良い（同チーム重複が少ない）
+ */
+function calcSameTeamScore(team1, team2) {
+  let score = 0;
+  const ids1 = team1.map(p => p.id);
+  const ids2 = team2.map(p => p.id);
+
+  for (const round of rounds) {
+    for (const roundTeam of [round.t1, round.t2]) {
+      for (const candidateTeam of [ids1, ids2]) {
+        for (let i = 0; i < candidateTeam.length; i++) {
+          for (let j = i + 1; j < candidateTeam.length; j++) {
+            if (roundTeam.includes(candidateTeam[i]) && roundTeam.includes(candidateTeam[j])) {
+              score++;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return score;
+}
+
+/** 両チームのランク合計の差 */
+function calcRankDiff(team1, team2) {
+  const sum1 = team1.reduce((sum, p) => sum + p.rank, 0);
+  const sum2 = team2.reduce((sum, p) => sum + p.rank, 0);
+  return Math.abs(sum1 - sum2);
+}
+
+/** ID 配列からランク合計を計算 */
+function calcRankSum(ids) {
+  return ids.reduce((sum, id) => {
+    const player = findPlayer(id);
+    return sum + (player ? player.rank : 0);
+  }, 0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  Rendering - Player List
+// ═══════════════════════════════════════════════════════
+
+function renderList() {
+  const el = document.getElementById('playerList');
+  document.getElementById('playerCount').textContent = players.length + ' 人';
+
+  if (!players.length) {
+    el.innerHTML = '<div class="empty-state">参加者を追加してください</div>';
+    return;
+  }
+
+  el.innerHTML = players.map(player => {
+    const playCount = getPlayCount(player.id);
+    const specCount = getSpecCount(player.id);
+
+    return `<div class="player-item${player.onBreak ? ' on-break' : ''}">
+      <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}">${RANK_LABELS[player.rank]}</div>
+      <div class="flex-grow-1 text-truncate" style="max-width:72px;">${escapeHtml(player.name)}</div>
+      <span class="stat-pill"><i class="bi bi-controller" style="font-size:.58rem;"></i>&nbsp;<span class="v">${playCount}</span></span>
+      <span class="stat-pill"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
+      <button class="btn-flag${player.priority ? ' on-pri' : ''}" onclick="togglePriority(${player.id})">★優先</button>
+      <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁観戦</button>
+      <button class="btn btn-link btn-sm p-0 text-danger ms-1" onclick="deletePlayer(${player.id})"><i class="bi bi-x-lg"></i></button>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Rendering - Current Round
+// ═══════════════════════════════════════════════════════
+
+function renderCurrent(round) {
+  const container = document.getElementById('teamsContainer');
+
+  if (!round) {
+    container.innerHTML = '<div class="no-round-msg">「次のラウンド生成」を押してチーム分けを開始</div>';
+    return;
+  }
+
+  const team1 = round.t1.map(findPlayer).filter(Boolean);
+  const team2 = round.t2.map(findPlayer).filter(Boolean);
+  const spectators = round.specs.map(findPlayer).filter(Boolean);
+  const breaks = round.breaks.map(findPlayer).filter(Boolean);
+  const rankSum1 = calcRankSum(round.t1);
+  const rankSum2 = calcRankSum(round.t2);
+  const diff = Math.abs(rankSum1 - rankSum2);
+  const modeLabel = MODE_LABELS[round.mode] || round.mode;
+
+  // ランク分布情報
+  const rankDistInfo = RANK_LABELS.map((_, rank) => {
+    const count1 = team1.filter(p => p.rank === rank).length;
+    const count2 = team2.filter(p => p.rank === rank).length;
+    return `<span class="rank-badge ${RANK_BADGE_CLASSES[rank]}" style="width:auto;border-radius:.25rem;padding:.05rem .35rem;font-size:.62rem;">${RANK_LABELS[rank]}: B${count1} / R${count2}</span>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="row g-3 mb-2">
+      <div class="col-12 col-lg-6">
+        <div class="team-card team-blue">
+          <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--blue-bd);">
+            <span class="team-title"><i class="bi bi-shield-fill me-1"></i>BLUE TEAM</span>
+            <span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;">合計 ${rankSum1}</span>
+          </div>
+          <div class="d-flex flex-column gap-1">
+            ${team1.length ? team1.map((p, i) => renderPlayerRow(p, i + 1)).join('') : '<div class="empty-state">-</div>'}
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="team-card team-red">
+          <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--red-bd);">
+            <span class="team-title"><i class="bi bi-shield-fill me-1"></i>RED TEAM</span>
+            <span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;">合計 ${rankSum2}</span>
+          </div>
+          <div class="d-flex flex-column gap-1">
+            ${team2.length ? team2.map((p, i) => renderPlayerRow(p, i + 1)).join('') : '<div class="empty-state">-</div>'}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+      <span class="bbadge ${diff === 0 ? 'bg-success-subtle text-success-emphasis' : 'bg-warning-subtle text-warning-emphasis'}">
+        <i class="bi bi-${diff === 0 ? 'check-circle' : 'exclamation-triangle'} me-1"></i>ランク差 ${diff === 0 ? '均等' : diff}
+      </span>
+      <span class="bbadge bg-light text-secondary border"><i class="bi bi-sliders me-1"></i>${modeLabel}</span>
+      ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>リロール ${round.rerolls}回</span>` : ''}
+      ${rankDistInfo}
+    </div>
+    <div class="spec-section">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="section-label mb-0"><i class="bi bi-eye me-1"></i>観戦者</div>
+        <small style="color:var(--text-muted);font-size:.7rem;">次ラウンド優先参加</small>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        ${spectators.length
+          ? spectators.map(p => `<div class="spec-chip${p.priority ? ' has-pri' : ''}">
+              <span class="rank-badge ${RANK_BADGE_CLASSES[p.rank]}" style="width:18px;height:18px;font-size:.55rem;">${RANK_LABELS[p.rank]}</span>
+              ${escapeHtml(p.name)}${p.priority ? ' <i class="bi bi-star-fill" style="color:var(--gold);font-size:.65rem;"></i>' : ''}
+            </div>`).join('')
+          : '<span class="empty-state">観戦者なし（全員参加）</span>'
+        }
+        ${breaks.length ? `<span class="ms-2" style="font-size:.75rem;color:#888;align-self:center;">| 👁観戦: ${breaks.map(p => escapeHtml(p.name)).join(', ')}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+/** チーム内のプレイヤー1行 */
+function renderPlayerRow(player, number) {
+  return `<div class="team-player">
+    <div class="p-num">${number}</div>
+    <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" style="width:20px;height:20px;font-size:.6rem;">${RANK_LABELS[player.rank]}</div>
+    <div class="flex-grow-1">${escapeHtml(player.name)}</div>
+    ${player.priority ? '<i class="bi bi-star-fill ms-auto" style="color:var(--gold);font-size:.68rem;"></i>' : ''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Rendering - History
+// ═══════════════════════════════════════════════════════
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+
+  if (!rounds.length) {
+    el.innerHTML = '<div class="empty-state">まだ履歴がありません</div>';
+    return;
+  }
+
+  el.innerHTML = [...rounds].reverse().map(round => {
+    const team1Names = round.t1.map(id => findPlayer(id)?.name || '?').join(', ');
+    const team2Names = round.t2.map(id => findPlayer(id)?.name || '?').join(', ');
+    const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
+    const modeLabel = MODE_LABELS[round.mode] || round.mode;
+
+    return `<div class="history-item">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="r-badge">R${round.num}</span>
+        <span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${modeLabel}</span>
+        ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>${round.rerolls}回</span>` : ''}
+      </div>
+      <div style="color:var(--text-muted);">
+        <span style="color:var(--blue);font-weight:600;">B</span>
+        <span style="color:var(--text);"> ${escapeHtml(team1Names)}</span>
+        <span class="mx-2" style="color:var(--border);">vs</span>
+        <span style="color:var(--red);font-weight:600;">R</span>
+        <span style="color:var(--text);"> ${escapeHtml(team2Names)}</span>
+      </div>
+      ${specNames ? `<div class="mt-1" style="font-size:.72rem;color:var(--text-muted);"><i class="bi bi-eye me-1"></i>観戦者: ${escapeHtml(specNames)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Round Reset
+// ═══════════════════════════════════════════════════════
+
+function resetRounds() {
+  if (!rounds.length) return;
+  if (!confirm('ラウンド履歴をリセットしますか？')) return;
+
+  rounds = [];
+  showRerollControls(false);
+  renderCurrent(null);
+  renderHistory();
+  renderList();
+  document.getElementById('roundLabel').textContent = 'ROUND —';
+  toast('履歴をリセットしました', 'secondary');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Storage（localStorage）
+// ═══════════════════════════════════════════════════════
+
+function saveData() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      players,
+      pid: nextPlayerId
+    }));
+  } catch (err) { /* ignore */ }
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.players)) {
+      players = data.players;
+      nextPlayerId = data.pid || 0;
+      renderList();
+      toast('参加者データを復元しました', 'secondary');
+    }
+  } catch (err) { /* ignore */ }
+}
+
+function clearSave() {
+  if (!confirm('保存された参加者データを削除しますか？')) return;
+  localStorage.removeItem(SAVE_KEY);
+  toast('保存データを削除しました', 'secondary');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════
+
+loadData();
+
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 
 | ツール | 説明 | バージョン |
 |--------|------|-----------|
-| [Team Divider](./lol-team-divider/team-divider.html) | チーム分けツール | v1.00 |
+| [Team Divider](./lol-team-divider/team-divider.html) | チーム分けツール | v1.10 |
 
 ## Team Divider
 

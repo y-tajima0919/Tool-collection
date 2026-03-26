@@ -165,7 +165,10 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
       <div class="flex-grow-1">
         <div class="d-flex justify-content-between align-items-end mb-1">
           <div class="section-label mb-0"><i class="bi bi-people me-1"></i>参加者リスト</div>
-          <small class="text-muted" id="playerCount">0 人</small>
+          <div class="d-flex align-items-center gap-2">
+            <span class="d-flex gap-1" id="playerRatioCounts"></span>
+            <small class="text-muted" id="playerCount">0 人</small>
+          </div>
         </div>
         <div class="player-scroll d-flex flex-column gap-1 mt-2" id="playerList">
           <div class="empty-state">参加者を追加してください</div>
@@ -193,13 +196,13 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         <button class="btn btn-generate px-3 py-2" onclick="generateRound()">
           <i class="bi bi-shuffle me-1"></i>次のラウンド生成
         </button>
-        <button class="btn btn-reroll px-3 py-2 d-none" id="rerollBtn" onclick="rerollRound()">
-          <i class="bi bi-arrow-repeat me-1"></i>リロール
-        </button>
-        <div class="d-none align-items-center gap-2" id="rerollOpts">
+        <div class="d-none align-items-center gap-2" id="rerollGroup" style="background:rgba(200,120,32,.06);border:1px solid rgba(200,120,32,.25);border-radius:.4rem;padding:.3rem .6rem;">
+          <button class="btn btn-reroll px-3 py-2" id="rerollBtn" onclick="rerollRound()">
+            <i class="bi bi-arrow-repeat me-1"></i>リロール
+          </button>
           <div class="form-check form-check-inline mb-0" style="font-size:.78rem;">
-            <input class="form-check-input" type="checkbox" id="rerollIncludeOverflow">
-            <label class="form-check-label" for="rerollIncludeOverflow">枠不足の待機者を含める</label>
+            <input class="form-check-input" type="checkbox" id="rerollIncludeOverflow" style="border-color:rgba(200,120,32,.5);">
+            <label class="form-check-label" for="rerollIncludeOverflow" style="color:var(--text);">待機者を含めて再抽選</label>
           </div>
         </div>
         <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="resetRounds()">
@@ -246,6 +249,10 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
               </label>
             </div>
           </div>
+            <div class="form-check mt-2 mb-0" style="font-size:.78rem;">
+              <input class="form-check-input" type="checkbox" id="minOnePerRatio" checked>
+              <label class="form-check-label" for="minOnePerRatio">各レシオから最低1名は選出する</label>
+            </div>
           <div class="mt-2" id="biasOpts">
             <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-sort-numeric-down me-1"></i>選出傾向（バランス優先時）</div>
             <div class="d-flex gap-4 flex-wrap">
@@ -309,6 +316,9 @@ let nextPlayerId = 0;
 // ═══════════════════════════════════════════════════════
 
 const TEAM_SIZE = 5;
+// 注意: 内部では rank を 0, 1, 2 で管理（初級/中級/上級の名残）
+// 表示上は RANK_LABELS で 1, 2, 3 に変換する
+// 合計値の表示には rank + 1 を使用すること（calcRankSum 参照）
 const RANK_LABELS = ['1', '2', '3'];
 const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
 const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
@@ -356,6 +366,11 @@ function getSelectedSelectionMode() {
 /** 現在選択中の選出傾向を取得 */
 function getSelectedBias() {
   return document.querySelector('input[name="bias"]:checked').value;
+}
+
+/** 各レシオから最低1名選出するかを取得 */
+function getMinOnePerRatio() {
+  return document.getElementById('minOnePerRatio').checked;
 }
 
 /** トースト通知 */
@@ -481,11 +496,13 @@ function getLastPlayedIndex(id) {
  * 3. 累計待機回数（多い人を優先）
  * 4. 最後の参加が古い順
  * 5. ランダム（登録順バイアス除去）
+ * @param {Array} pool - 候補プレイヤー
+ * @param {boolean} minOne - 各レシオから最低1名選出するか
  */
-function sortForRotation(pool) {
+function sortForRotation(pool, minOne) {
   const lastRound = rounds.length ? rounds[rounds.length - 1] : null;
 
-  return [...pool].sort((a, b) => {
+  const sorted = [...pool].sort((a, b) => {
     if (a.priority !== b.priority) return b.priority - a.priority;
 
     if (lastRound) {
@@ -502,6 +519,38 @@ function sortForRotation(pool) {
 
     return Math.random() - 0.5;
   });
+
+  if (!minOne) return sorted;
+
+  // 最低1名制約: 選出枠に入らないレシオがあれば、待機側から引き上げる
+  const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
+  const selected = sorted.slice(0, teamSlots);
+  const rest = sorted.slice(teamSlots);
+
+  // 在籍レシオを判定
+  const hasRatio = [0, 1, 2].map(r => pool.some(p => p.rank === r));
+
+  for (let r = 0; r < 3; r++) {
+    if (!hasRatio[r]) continue;
+    if (selected.some(p => p.rank === r)) continue;
+
+    // 待機側からこのレシオの最初の人を見つけて引き上げ
+    const idx = rest.findIndex(p => p.rank === r);
+    if (idx === -1) continue;
+    const pulled = rest.splice(idx, 1)[0];
+
+    // 選出側から★優先でない末尾を押し出す
+    let pushIdx = -1;
+    for (let i = selected.length - 1; i >= 0; i--) {
+      if (!selected[i].priority) { pushIdx = i; break; }
+    }
+    if (pushIdx !== -1) {
+      rest.push(selected.splice(pushIdx, 1)[0]);
+      selected.push(pulled);
+    }
+  }
+
+  return [...selected, ...rest];
 }
 
 /**
@@ -512,8 +561,9 @@ function sortForRotation(pool) {
  * @param {Array} pool - 候補プレイヤー
  * @param {string} mode - 'rank_count' or 'rank_sum'
  * @param {string} bias - 'low' or 'high'
+ * @param {boolean} minOne - 各レシオから最低1名選出するか
  */
-function sortForBalance(pool, mode, bias) {
+function sortForBalance(pool, mode, bias, minOne) {
   const priorityPlayers = pool.filter(p => p.priority);
   const normalPlayers = pool.filter(p => !p.priority);
 
@@ -541,13 +591,18 @@ function sortForBalance(pool, mode, bias) {
     .reduce((s, p) => s + p.rank, 0);
   const available = groups.map(g => g.length);
 
-  // 全構成を列挙し、最適なものを選ぶ
-  // 評価基準:
+  // 全構成を列挙し、ハード制約でフィルタ後、バイアス付きランダム選択
+  // ハード制約:
   //   1. レシオ合計が偶数（0差分割の必要条件）
   //   2. 均等レシオ分け時: 各レシオの人数が偶数（0差を保証）
-  //   3. 各レシオから均等に取る
-  let bestComp = null;
-  let bestScore = Infinity;
+  //   3. minOne 時: 各レシオから最低1名（優先者含む）
+  const allCandidates = [];
+  let minPenalty = Infinity;
+
+  // 在籍レシオを事前計算（available + 優先者）
+  const hasRatio = [0, 1, 2].map(r =>
+    available[r] > 0 || priorityPlayers.slice(0, priorityCount).some(p => p.rank === r)
+  );
 
   for (let c0 = 0; c0 <= Math.min(available[0], normalNeeded); c0++) {
     for (let c1 = 0; c1 <= Math.min(available[1], normalNeeded - c0); c1++) {
@@ -560,26 +615,49 @@ function sortForBalance(pool, mode, bias) {
         total[p.rank]++;
       }
 
+      // 最低1名制約チェック
+      const meetsMinOne = !hasRatio.some((has, r) => has && total[r] === 0);
+
       const totalRankSum = total[1] * 1 + total[2] * 2;
       const isEven = totalRankSum % 2 === 0;
 
-      // 偶数でないと0差が不可能 → 大きなペナルティ
       const evenSumPenalty = isEven ? 0 : 10000;
-      // 均等レシオ分け時のみ: 各レシオの人数が奇数だと差が出る
       const oddCountPenalty = (mode === 'rank_count')
         ? total.filter(c => c % 2 !== 0).length * 100
         : 0;
-      // 各レシオから均等に取るほどよい
-      const spread = Math.abs(c0 - c1) + Math.abs(c1 - c2) + Math.abs(c0 - c2);
-      // 選出傾向: 低レシオ優先なら c0 が多い構成を、高レシオ優先なら c2 が多い構成を好む
-      const biasTie = (bias === 'low') ? -c0 : -c2;
-      const score = evenSumPenalty + oddCountPenalty + spread + biasTie * 0.1;
+      const penalty = evenSumPenalty + oddCountPenalty;
 
-      if (score < bestScore) {
-        bestScore = score;
-        bestComp = [c0, c1, c2];
-      }
+      if (penalty < minPenalty) minPenalty = penalty;
+      allCandidates.push({ comp: [c0, c1, c2], penalty, meetsMinOne });
     }
+  }
+
+  // 最小ペナルティの候補を抽出し、minOne制約でフィルタ（該当なしならフォールバック）
+  const bestPenalty = allCandidates.filter(c =>
+    c.penalty === minPenalty && (!minOne || c.meetsMinOne)
+  );
+  const valid = bestPenalty.length > 0
+    ? bestPenalty
+    : allCandidates.filter(c => c.penalty === minPenalty);
+
+  // バイアスで重み付け:
+  // 低レシオ優先: レシオ1の人数を最重視し、次にレシオ2の人数を重視
+  // 高レシオ優先: レシオ3の人数を最重視し、次にレシオ2の人数を重視
+  // rank_sum 時は穏やかな重みにして構成のバリエーションを確保
+  const weighted = valid.map(c => {
+    const biasValue = (bias === 'low')
+      ? (c.comp[0] * 3 + c.comp[1])
+      : (c.comp[2] * 3 + c.comp[1]);
+    // rank_count: 強い重み（構成を固定寄り）、rank_sum: ほぼ均等（バリエーション重視）
+    const base = (mode === 'rank_count') ? 2 : 1.05;
+    return { comp: c.comp, weight: Math.pow(base, biasValue) };
+  });
+  const totalWeight = weighted.reduce((s, w) => s + w.weight, 0);
+  let roll = Math.random() * totalWeight;
+  let bestComp = weighted[0].comp;
+  for (const w of weighted) {
+    roll -= w.weight;
+    if (roll <= 0) { bestComp = w.comp; break; }
   }
 
   // 最適な構成で選出
@@ -601,13 +679,14 @@ function generateRound() {
   const mode = getSelectedMode();
   const selectionMode = getSelectedSelectionMode();
   const bias = getSelectedBias();
+  const minOne = getMinOnePerRatio();
   const pool = players.filter(p => !p.onBreak);
 
   if (pool.length < 2) return toast('参加可能な人が少なすぎます', 'warning');
 
   const sorted = (selectionMode === 'balance')
-    ? sortForBalance(pool, mode, bias)
-    : sortForRotation(pool);
+    ? sortForBalance(pool, mode, bias, minOne)
+    : sortForRotation(pool, minOne);
   const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
   const selected = sorted.slice(0, teamSlots);
   const spectators = sorted.slice(teamSlots);
@@ -659,6 +738,7 @@ function rerollRound() {
   const mode = getSelectedMode();
   const selectionMode = getSelectedSelectionMode();
   const bias = getSelectedBias();
+  const minOne = getMinOnePerRatio();
   const includeOverflow = document.getElementById('rerollIncludeOverflow').checked;
 
   let selected;
@@ -668,8 +748,8 @@ function rerollRound() {
     // 全員から選出方式に従って再選出（generateRound と同じロジック）
     pool = players.filter(p => !p.onBreak);
     const sorted = (selectionMode === 'balance')
-      ? sortForBalance(pool, mode, bias)
-      : sortForRotation(pool);
+      ? sortForBalance(pool, mode, bias, minOne)
+      : sortForRotation(pool, minOne);
     const teamSlots = Math.min(sorted.length, TEAM_SIZE * 2);
     selected = sorted.slice(0, teamSlots);
   } else {
@@ -718,18 +798,15 @@ function rerollRound() {
   }
 }
 
-/** リロールボタン・オプションの表示切り替え */
+/** リロールグループの表示切り替え */
 function showRerollControls(visible) {
-  const btn = document.getElementById('rerollBtn');
-  const opts = document.getElementById('rerollOpts');
+  const group = document.getElementById('rerollGroup');
   if (visible) {
-    btn.classList.remove('d-none');
-    opts.classList.remove('d-none');
-    opts.classList.add('d-flex');
+    group.classList.remove('d-none');
+    group.classList.add('d-flex');
   } else {
-    btn.classList.add('d-none');
-    opts.classList.add('d-none');
-    opts.classList.remove('d-flex');
+    group.classList.add('d-none');
+    group.classList.remove('d-flex');
   }
 }
 
@@ -914,11 +991,11 @@ function calcRankDiff(team1, team2) {
   return Math.abs(sum1 - sum2);
 }
 
-/** ID 配列からレシオ合計を計算 */
+/** ID 配列からレシオ合計を計算（表示用: rank+1 で計算） */
 function calcRankSum(ids) {
   return ids.reduce((sum, id) => {
     const player = findPlayer(id);
-    return sum + (player ? player.rank : 0);
+    return sum + (player ? player.rank + 1 : 0);
   }, 0);
 }
 
@@ -959,6 +1036,13 @@ function findDuplicateRound(currentRound) {
 function renderList() {
   const el = document.getElementById('playerList');
   document.getElementById('playerCount').textContent = players.length + ' 人';
+
+  // レシオ別人数を表示
+  const ratioCounts = [0, 0, 0];
+  for (const p of players) ratioCounts[p.rank]++;
+  document.getElementById('playerRatioCounts').innerHTML = RANK_LABELS.map((label, r) =>
+    `<span class="rank-badge ${RANK_BADGE_CLASSES[r]}" style="width:auto;border-radius:.25rem;padding:.05rem .35rem;font-size:.58rem;cursor:default;">${label}: ${ratioCounts[r]}</span>`
+  ).join('');
 
   if (!players.length) {
     el.innerHTML = '<div class="empty-state">参加者を追加してください</div>';
@@ -1089,12 +1173,22 @@ function renderHistory() {
   }
 
   el.innerHTML = [...rounds].reverse().map(round => {
-    const team1Names = round.t1.map(id => findPlayer(id)?.name || '?').join(', ');
-    const team2Names = round.t2.map(id => findPlayer(id)?.name || '?').join(', ');
-    const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
     const modeLabel = MODE_LABELS[round.mode] || round.mode;
     const selLabel = SELECTION_LABELS[round.selectionMode] || '';
     const biasLabel = (round.selectionMode === 'balance' && round.bias) ? BIAS_LABELS[round.bias] || '' : '';
+    const rs1 = calcRankSum(round.t1);
+    const rs2 = calcRankSum(round.t2);
+
+    // プレイヤー名＋レシオバッジのヘルパー
+    const nameWithRatio = (id) => {
+      const p = findPlayer(id);
+      if (!p) return '?';
+      return `<span class="rank-badge ${RANK_BADGE_CLASSES[p.rank]}" style="width:16px;height:16px;font-size:.5rem;display:inline-flex;">${RANK_LABELS[p.rank]}</span>${escapeHtml(p.name)}`;
+    };
+
+    const team1Html = round.t1.map(nameWithRatio).join(', ');
+    const team2Html = round.t2.map(nameWithRatio).join(', ');
+    const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
 
     return `<div class="history-item">
       <div class="d-flex align-items-center gap-2 mb-1">
@@ -1104,12 +1198,12 @@ function renderHistory() {
         ${biasLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${biasLabel}</span>` : ''}
         ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>${round.rerolls}回</span>` : ''}
       </div>
-      <div style="color:var(--text-muted);">
-        <span style="color:var(--blue);font-weight:600;">B</span>
-        <span style="color:var(--text);"> ${escapeHtml(team1Names)}</span>
+      <div style="color:var(--text-muted);line-height:1.8;">
+        <span style="color:var(--blue);font-weight:600;">B</span><span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-size:.55rem;font-weight:500;padding:.1rem .3rem;margin:0 .3rem;">${rs1}</span>
+        <span style="color:var(--text);"> ${team1Html}</span>
         <span class="mx-2" style="color:var(--border);">vs</span>
-        <span style="color:var(--red);font-weight:600;">R</span>
-        <span style="color:var(--text);"> ${escapeHtml(team2Names)}</span>
+        <span style="color:var(--red);font-weight:600;">R</span><span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-size:.55rem;font-weight:500;padding:.1rem .3rem;margin:0 .3rem;">${rs2}</span>
+        <span style="color:var(--text);"> ${team2Html}</span>
       </div>
       ${specNames ? `<div class="mt-1" style="font-size:.72rem;color:var(--text-muted);"><i class="bi bi-eye me-1"></i>待機者: ${escapeHtml(specNames)}</div>` : ''}
     </div>`;

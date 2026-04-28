@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAM DIVIDER v1.10</title>
+<title>TEAM DIVIDER v1.11</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -26,6 +26,12 @@
   --rank1-bg:  #E6F5EE;
   --rank2-c:   #A07010;
   --rank2-bg:  #FAF3E0;
+  --lock1-c:   #B25D9C;
+  --lock1-bg:  #F7E8F2;
+  --lock2-c:   #4A8C8C;
+  --lock2-bg:  #E2F2F2;
+  --lock3-c:   #C87830;
+  --lock3-bg:  #FAEDDC;
   --body-bg:   #FFFFFF;
   --card-bg:   #FFFFFF;
   --sidebar-bg:#F8F8F8;
@@ -94,6 +100,14 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .btn-flag { padding:.15rem .32rem; font-size:.67rem; border-radius:.25rem; border:1px solid var(--border); background:transparent; color:var(--text-muted); transition:all .15s; white-space:nowrap; line-height:1.4; cursor:pointer; }
 .btn-flag.on-pri  { border-color:var(--gold);  color:var(--gold);  background:var(--gold-bg); }
 .btn-flag.on-brk  { border-color:#888;          color:#666;         background:#f0f0f0; }
+.btn-lock { padding:.15rem .3rem; font-size:.65rem; border-radius:.25rem; border:1px solid var(--border); background:transparent; color:var(--text-muted); transition:all .15s; white-space:nowrap; line-height:1.4; cursor:pointer; min-width:34px; }
+.btn-lock.lg-1 { border-color:var(--lock1-c); color:var(--lock1-c); background:var(--lock1-bg); font-weight:700; }
+.btn-lock.lg-2 { border-color:var(--lock2-c); color:var(--lock2-c); background:var(--lock2-bg); font-weight:700; }
+.btn-lock.lg-3 { border-color:var(--lock3-c); color:var(--lock3-c); background:var(--lock3-bg); font-weight:700; }
+.lock-badge { display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 .25rem; border-radius:.2rem; font-size:.55rem; font-weight:700; border:1px solid; line-height:1; }
+.lock-badge.lg-1 { color:var(--lock1-c); border-color:var(--lock1-c); background:var(--lock1-bg); }
+.lock-badge.lg-2 { color:var(--lock2-c); border-color:var(--lock2-c); background:var(--lock2-bg); }
+.lock-badge.lg-3 { color:var(--lock3-c); border-color:var(--lock3-c); background:var(--lock3-bg); }
 
 /* Mode card */
 .mode-card { background:var(--card-bg); border:1px solid var(--border); border-radius:.5rem; padding:.75rem; }
@@ -134,7 +148,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
 <div class="app-header">
   <div>
-    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.10</span></h1>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.11</span></h1>
     <p>BALANCED MATCHMAKING SYSTEM</p>
   </div>
 </div>
@@ -180,6 +194,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
           <div><i class="bi bi-controller" style="font-size:.65rem;"></i> 参加 ／ <i class="bi bi-eye" style="font-size:.65rem;"></i> 待機 （累計回数）</div>
           <div><span style="color:var(--gold);font-weight:500;">★優先</span> = 次ラウンドで必ず参加</div>
           <div><span style="color:#888;font-weight:500;">👁待機</span> = 今ラウンドを欠席し待機者になる</div>
+          <div><span style="color:var(--lock1-c);font-weight:500;">🔒A/B/C</span> = 同じグループは同じチームに固定</div>
           <div>待機者は次ラウンドで自動優先参加</div>
         </div>
         <button class="btn btn-outline-danger btn-sm w-100 mt-2" style="font-size:.72rem;" onclick="clearSave()">
@@ -324,6 +339,8 @@ const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
 const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
 const SELECTION_LABELS = { rotation: 'ローテーション', balance: 'バランス' };
 const BIAS_LABELS = { low: '低レシオ優先', high: '高レシオ優先' };
+// ロックグループ: 0=未指定, 1=A, 2=B, 3=C （同じグループは必ず同じチーム）
+const LOCK_LABELS = ['', 'A', 'B', 'C'];
 const SAVE_KEY = 'lol_td_players';
 
 // ═══════════════════════════════════════════════════════
@@ -421,7 +438,8 @@ function addPlayer() {
     name,
     rank: selectedRank,
     priority: false,
-    onBreak: false
+    onBreak: false,
+    lockGroup: 0
   });
 
   input.value = '';
@@ -459,6 +477,15 @@ function cycleRank(id) {
   const player = findPlayer(id);
   if (!player) return;
   player.rank = (player.rank + 1) % RANK_LABELS.length;
+  renderList();
+  saveData();
+}
+
+/** ロックグループを なし→A→B→C→なし とサイクル変更 */
+function cycleLockGroup(id) {
+  const player = findPlayer(id);
+  if (!player) return;
+  player.lockGroup = ((player.lockGroup || 0) + 1) % LOCK_LABELS.length;
   renderList();
   saveData();
 }
@@ -858,6 +885,9 @@ function balanceByRankCount(selected) {
     team2.push(...shuffled.slice(splits[r][0]));
   }
 
+  // ロックグループの整合化（同グループメンバーを同チームに寄せる）
+  consolidateLockGroups(team1, team2);
+
   // 最適化: 同レシオ同士をスワップして過去の同チームペアを最小化
   optimizeSameRankSwaps(team1, team2);
 
@@ -903,7 +933,11 @@ function balanceByRankSum(selected) {
     }
   }
 
+  // ロックグループの整合化（Pass 2 の前に寄せておく）
+  consolidateLockGroups(team1, team2);
+
   // Pass 2: レシオ差を悪化させずに同チームペアを最小化
+  // ロックグループを分断するスワップは禁止
   if (rounds.length > 0) {
     const targetDiff = calcRankDiff(team1, team2);
     improved = true;
@@ -912,6 +946,7 @@ function balanceByRankSum(selected) {
       improved = false;
       for (let i = 0; i < team1.length; i++) {
         for (let j = 0; j < team2.length; j++) {
+          if (wouldSplitLockGroup(team1, team2, i, j)) continue;
           const currentScore = calcSameTeamScore(team1, team2);
           [team1[i], team2[j]] = [team2[j], team1[i]];
           if (calcSameTeamScore(team1, team2) < currentScore
@@ -929,8 +964,104 @@ function balanceByRankSum(selected) {
 }
 
 /**
+ * ロックグループ整合化
+ * 同じ lockGroup のメンバーが両チームに分散している場合、
+ * 少数派側のメンバーを多数派側へスワップで移動する。
+ *
+ * スワップ条件:
+ *   1. 相手は別ロックグループでない（同グループ or 未指定）
+ *   2. レシオが等しい（レシオ均衡を維持）
+ *   2 が見つからなければ、レシオ差悪化を許容してスワップ（※同チーム保証を優先）
+ *
+ * 寄せきれない場合（グループ人数 > TEAM_SIZE 等）はトースト警告。
+ */
+function consolidateLockGroups(team1, team2) {
+  if (team1.length === 0 || team2.length === 0) return;
+
+  // チーム内の lockGroup ごとの分布を集計
+  const collectGroups = (team) => {
+    const map = {};
+    for (const p of team) {
+      if (!p.lockGroup) continue;
+      (map[p.lockGroup] = map[p.lockGroup] || []).push(p);
+    }
+    return map;
+  };
+
+  let warned = false;
+  // 各ロックグループを順に処理。多数派側に寄せる
+  for (let pass = 0; pass < 5; pass++) {
+    const g1 = collectGroups(team1);
+    const g2 = collectGroups(team2);
+    const allGroups = new Set([...Object.keys(g1), ...Object.keys(g2)]);
+
+    let anyMoved = false;
+    for (const groupId of allGroups) {
+      const inT1 = g1[groupId] || [];
+      const inT2 = g2[groupId] || [];
+      if (inT1.length === 0 || inT2.length === 0) continue;
+
+      // 多数派 / 少数派を決定（同数なら team1 を多数派にして team2 から移動）
+      const t1IsMajority = inT1.length >= inT2.length;
+      const minority = t1IsMajority ? inT2 : inT1;
+      const minorityTeam = t1IsMajority ? team2 : team1;
+      const majorityTeam = t1IsMajority ? team1 : team2;
+
+      // 少数派の1名を多数派側へ移動
+      for (const moveOut of minority) {
+        // 移動相手の候補: 多数派チームから出してよいプレイヤー
+        //   - 同じグループは除外（多数派側の同グループを減らさない）
+        //   - 別グループ持ちは、多数派側に他メンバーがいなければOK（分断しない）
+        //   - 未指定はOK
+        const candidates = majorityTeam
+          .map((p, idx) => ({ p, idx }))
+          .filter(({ p, idx }) => {
+            if (String(p.lockGroup) === groupId) return false;
+            if (!p.lockGroup) return true;
+            const sameGroupOthers = majorityTeam.filter((q, k) =>
+              k !== idx && q.lockGroup === p.lockGroup
+            );
+            return sameGroupOthers.length === 0;
+          });
+
+        // 同レシオを優先
+        let pick = candidates.find(c => c.p.rank === moveOut.rank);
+        if (!pick) pick = candidates[0]; // レシオ差悪化を許容
+
+        if (!pick) {
+          warned = true;
+          break;
+        }
+
+        const minorityIdx = minorityTeam.indexOf(moveOut);
+        if (minorityIdx === -1) continue;
+
+        // スワップ実行
+        const tmp = minorityTeam[minorityIdx];
+        minorityTeam[minorityIdx] = majorityTeam[pick.idx];
+        majorityTeam[pick.idx] = tmp;
+        anyMoved = true;
+        break; // この pass で1グループ1人ずつ移動
+      }
+    }
+
+    if (!anyMoved) break;
+  }
+
+  // 最終チェック: 分散しているグループが残っていないか
+  const finalG1 = collectGroups(team1);
+  const finalG2 = collectGroups(team2);
+  const remaining = Object.keys(finalG1).filter(id => finalG2[id]);
+  if (remaining.length > 0 || warned) {
+    const names = remaining.map(id => LOCK_LABELS[id] || '?').join(', ');
+    toast(`⚠ ロックグループ ${names} を同チームに寄せきれませんでした`, 'danger');
+  }
+}
+
+/**
  * 同レシオスワップ最適化（balanceByRankCount 用）
  * レシオ均等を崩さずに過去の同チームペアを最小化
+ * ロックグループの分散を生むスワップは禁止
  */
 function optimizeSameRankSwaps(team1, team2) {
   if (rounds.length === 0) return;
@@ -942,6 +1073,7 @@ function optimizeSameRankSwaps(team1, team2) {
     for (let i = 0; i < team1.length; i++) {
       for (let j = 0; j < team2.length; j++) {
         if (team1[i].rank !== team2[j].rank) continue;
+        if (wouldSplitLockGroup(team1, team2, i, j)) continue;
         const before = calcSameTeamScore(team1, team2);
         [team1[i], team2[j]] = [team2[j], team1[i]];
         if (calcSameTeamScore(team1, team2) < before) {
@@ -952,6 +1084,23 @@ function optimizeSameRankSwaps(team1, team2) {
       }
     }
   }
+}
+
+/**
+ * team1[i] と team2[j] のスワップがロックグループを分断するかを判定
+ * （同グループの他メンバーが元チームに残っている場合は分断発生）
+ */
+function wouldSplitLockGroup(team1, team2, i, j) {
+  const a = team1[i], b = team2[j];
+  if (a.lockGroup) {
+    const others = team1.filter((p, k) => k !== i && p.lockGroup === a.lockGroup);
+    if (others.length > 0) return true;
+  }
+  if (b.lockGroup) {
+    const others = team2.filter((p, k) => k !== j && p.lockGroup === b.lockGroup);
+    if (others.length > 0) return true;
+  }
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1052,6 +1201,9 @@ function renderList() {
   el.innerHTML = players.map(player => {
     const playCount = getPlayCount(player.id);
     const specCount = getSpecCount(player.id);
+    const lg = player.lockGroup || 0;
+    const lockLabel = lg ? `🔒${LOCK_LABELS[lg]}` : '🔒';
+    const lockClass = lg ? ` lg-${lg}` : '';
 
     return `<div class="player-item${player.onBreak ? ' on-break' : ''}">
       <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" onclick="cycleRank(${player.id})" title="クリックでレシオ変更">${RANK_LABELS[player.rank]}</div>
@@ -1060,6 +1212,7 @@ function renderList() {
       <span class="stat-pill"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
       <button class="btn-flag${player.priority ? ' on-pri' : ''}" onclick="togglePriority(${player.id})">★優先</button>
       <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁待機</button>
+      <button class="btn-lock${lockClass}" onclick="cycleLockGroup(${player.id})" title="同チーム固定グループ">${lockLabel}</button>
       <button class="btn btn-link btn-sm p-0 text-danger ms-1" onclick="deletePlayer(${player.id})"><i class="bi bi-x-lg"></i></button>
     </div>`;
   }).join('');
@@ -1152,10 +1305,13 @@ function renderCurrent(round) {
 
 /** チーム内のプレイヤー1行 */
 function renderPlayerRow(player, number) {
+  const lg = player.lockGroup || 0;
+  const lockHtml = lg ? `<span class="lock-badge lg-${lg}" title="ロックグループ ${LOCK_LABELS[lg]}">🔒${LOCK_LABELS[lg]}</span>` : '';
   return `<div class="team-player">
     <div class="p-num">${number}</div>
     <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" style="width:20px;height:20px;font-size:.6rem;">${RANK_LABELS[player.rank]}</div>
     <div class="flex-grow-1">${escapeHtml(player.name)}</div>
+    ${lockHtml}
     ${player.priority ? '<i class="bi bi-star-fill ms-auto" style="color:var(--gold);font-size:.68rem;"></i>' : ''}
   </div>`;
 }
@@ -1246,7 +1402,8 @@ function loadData() {
     if (!raw) return;
     const data = JSON.parse(raw);
     if (Array.isArray(data.players)) {
-      players = data.players;
+      // 後方互換: lockGroup が無い古いデータには 0（未指定）を補完
+      players = data.players.map(p => ({ lockGroup: 0, ...p }));
       nextPlayerId = data.pid || 0;
       renderList();
       toast('参加者データを復元しました', 'secondary');

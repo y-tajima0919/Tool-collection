@@ -10,12 +10,13 @@
 
 ## 編集 → 反映フロー
 
-1. `team-divider.html` を編集
-2. 機能変更時は `CHANGELOG.md` に新バージョンを追記し、HTML の `vX.Y` 表記を更新
+1. `tools/team-divider.html` を編集
+2. 機能変更時は `tools/team-divider/CHANGELOG.md` に新バージョンを追記し、HTML の `vX.Y` 表記を更新
 3. `git add → commit → push origin main`
-4. **本番反映**: `scp team-divider/team-divider.html sakura:www/noeyxy/tools/team-divider.html`
+4. **本番反映**: `scp tools/team-divider.html sakura:www/noeyxy/tools/team-divider.html`
    - SSH エイリアス `sakura` は `~/.ssh/config` に設定済み
-   - ツール一覧ページ更新時: `scp index.html sakura:www/noeyxy/tools/index.html`
+   - ツール一覧ページ更新時: `scp tools/index.html sakura:www/noeyxy/tools/index.html`
+   - ローカルの `tools/` は本番 `tools/` と階層が一致しているのでパスがブレない
    - ドキュメントだけの変更（README/HANDOVER/CHANGELOG）は scp 不要
 
 ## 必ず使う共通ヘルパー

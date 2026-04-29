@@ -67,20 +67,21 @@ Tool-collection/
 ├── README.md                       # このファイル
 ├── CLAUDE.md                       # Claude Code 用作業ガイド（軽量）
 ├── HANDOVER.md                     # プロジェクト引き継ぎ資料（関数表・既知の罠）
-├── index.html                      # ツール一覧ページ（デプロイ先: tools/index.html）
 ├── .gitignore
-└── team-divider/
-    ├── team-divider.html           # 本体
-    └── CHANGELOG.md                # バージョン履歴
+└── tools/                          # デプロイ可能なアセット一式（本番と同じ階層）
+    ├── index.html                  # ツール一覧ページ
+    ├── team-divider.html           # LoL Team Divider 本体
+    └── team-divider/               # ツール固有の docs（デプロイ対象外）
+        └── CHANGELOG.md            # バージョン履歴
 ```
 
-詳細な開発情報は [HANDOVER.md](HANDOVER.md)、変更履歴は [team-divider/CHANGELOG.md](team-divider/CHANGELOG.md) を参照。
+`tools/` ディレクトリは本番デプロイ先 (`sakura:www/noeyxy/tools/`) と階層が一致するため、`tools/index.html` 内の相対リンクはローカル・本番両方で動作します。
+
+詳細な開発情報は [HANDOVER.md](HANDOVER.md)、変更履歴は [tools/team-divider/CHANGELOG.md](tools/team-divider/CHANGELOG.md) を参照。
 
 ### デプロイ先
 
 | ローカルパス | 本番パス |
 |---|---|
-| `index.html` | `sakura:www/noeyxy/tools/index.html` → https://noeyxy.com/tools/ |
-| `team-divider/team-divider.html` | `sakura:www/noeyxy/tools/team-divider.html` → https://noeyxy.com/tools/team-divider.html |
-
-`index.html` 内のツールリンクは**デプロイ後の相対パス**（`./team-divider.html`）を想定しているため、ローカルで `index.html` を直接開くとリンクは切れる（クリックすると本番URLへ）。
+| `tools/index.html` | `sakura:www/noeyxy/tools/index.html` → https://noeyxy.com/tools/ |
+| `tools/team-divider.html` | `sakura:www/noeyxy/tools/team-divider.html` → https://noeyxy.com/tools/team-divider.html |

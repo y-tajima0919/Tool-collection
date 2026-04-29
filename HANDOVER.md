@@ -18,12 +18,17 @@ LoL のカスタム対戦用に作り始めたが、汎用化済み。
 ```
 Tool-collection/
 ├── README.md                       # リポジトリ全体の説明
-└── team-divider/
+├── CLAUDE.md                       # Claude Code 用作業ガイド
+├── HANDOVER.md                     # 本ファイル
+├── .gitignore
+└── tools/                          # 本番デプロイ先と同じ階層
+    ├── index.html                  # ツール一覧ページ
     ├── team-divider.html           # 本体（単一ファイル構成）
-    └── CHANGELOG.md                # 更新ログ
+    └── team-divider/
+        └── CHANGELOG.md            # 更新ログ
 ```
 
-**注意**: README内の参照パスは `./lol-team-divider/team-divider.html` のままなので、`./team-divider/team-divider.html` に修正が必要。
+**注意**: `tools/` 階層がデプロイ先 (`sakura:www/noeyxy/tools/`) と一致するため、`tools/index.html` 内の `./team-divider.html` 等の相対リンクはローカル・本番ともに動作する。
 
 ## 技術スタック
 

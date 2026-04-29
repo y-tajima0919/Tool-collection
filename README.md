@@ -7,7 +7,7 @@
 
 | ツール | 説明 | バージョン |
 |--------|------|-----------|
-| [Team Divider](./team-divider/team-divider.html) | チーム分けツール | v1.14 |
+| [Team Divider](./team-divider/team-divider.html) | チーム分けツール | v1.15 |
 
 ## Team Divider
 

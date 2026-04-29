@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAM DIVIDER v1.14</title>
+<title>TEAM DIVIDER v1.15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -261,7 +261,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
 <div class="app-header">
   <div>
-    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.14</span></h1>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.15</span></h1>
     <p>BALANCED MATCHMAKING SYSTEM</p>
   </div>
 </div>
@@ -767,6 +767,35 @@ function calcTeamWins(team) {
 /** 両チームの勝利数の差 */
 function calcWinDiff(team1, team2) {
   return Math.abs(calcTeamWins(team1) - calcTeamWins(team2));
+}
+
+/**
+ * プレイヤーの勝率（Laplace スムージング付き）
+ * 0戦の人は 0.5（中央値）、サンプル数が少ない人は 0.5 寄りに調整。
+ * 全員が均等に勝てる目標に対して、ノイズを抑え長期的な収束を狙う。
+ */
+function getWinRate(id) {
+  const w = getWinCount(id);
+  const l = getLossCount(id);
+  return (w + 1) / (w + l + 2);
+}
+
+/** チームの平均勝率 */
+function calcTeamWinRate(team) {
+  if (team.length === 0) return 0.5;
+  return team.reduce((s, p) => s + getWinRate(p.id), 0) / team.length;
+}
+
+/**
+ * チーム間の平均勝率差スコア（小さいほど均等）
+ * 両チームの平均勝率が等しいほど、各ラウンドの結果は確率的になり、
+ * 長期的に全員の勝率が 50% へ収束する。
+ */
+function calcWinRateScore(team1, team2) {
+  if (team1.length === 0 || team2.length === 0) return 0;
+  const r1 = calcTeamWinRate(team1);
+  const r2 = calcTeamWinRate(team2);
+  return Math.abs(r1 - r2) * 100;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1411,11 +1440,15 @@ function consolidateLockGroups(team1, team2) {
 function optimizeSameRankSwaps(team1, team2) {
   if (rounds.length === 0) return;
 
-  // スコア関数（小さいほど良い）: 同チームペアスコア + 勝利数差 * 係数
+  // スコア関数（小さいほど良い）:
+  //  - 過去の同チームペア重複スコア
+  //  - 平均勝率差スコア（勝敗判定モード時のみ、係数2で重み付け）
+  // 平均勝率を均等化することで、確率的に勝敗が分散し、
+  // 長期的に全プレイヤーの勝率が均等に収束することを狙う
   const score = () => {
     const pair = calcSameTeamScore(team1, team2);
-    const win = winRateMode ? calcWinDiff(team1, team2) : 0;
-    return pair + win * 5;
+    const wr = winRateMode ? calcWinRateScore(team1, team2) : 0;
+    return pair + wr * 2;
   };
 
   let improved = true;
@@ -1573,8 +1606,11 @@ function renderList() {
     const specCount = getSpecCount(player.id);
     const lg = player.lockGroup || 0;
     const lockLabel = lg ? LOCK_LABELS[lg] : '🔒';
+    const _w = getWinCount(player.id);
+    const _l = getLossCount(player.id);
+    const _pct = (_w + _l) === 0 ? '—' : Math.round(_w / (_w + _l) * 100) + '%';
     const winHtml = winRateMode
-      ? `<span class="stat-pill ${getWinRateClass(player.id)}" title="勝-負"><i class="bi bi-trophy" style="font-size:.58rem;"></i>&nbsp;<span class="v">${getWinCount(player.id)}-${getLossCount(player.id)}</span></span>`
+      ? `<span class="stat-pill ${getWinRateClass(player.id)}" title="${_w}勝${_l}敗 / 勝率${_pct}"><i class="bi bi-trophy" style="font-size:.58rem;"></i>&nbsp;<span class="v">${_w}-${_l}</span></span>`
       : '';
 
     return `<div class="player-item compact${player.onBreak ? ' on-break' : ''}">
@@ -1628,7 +1664,10 @@ function renderCurrent(round) {
         <div class="team-card team-blue">
           <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--blue-bd);">
             <span class="team-title"><i class="bi bi-shield-fill me-1"></i>BLUE TEAM</span>
-            <span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum1}</span>
+            <div class="d-flex gap-1">
+              ${winRateMode ? `<span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;" title="チーム平均勝率（Laplace 平滑化）">勝率 ${Math.round(calcTeamWinRate(team1) * 100)}%</span>` : ''}
+              <span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum1}</span>
+            </div>
           </div>
           <div class="d-flex flex-column gap-1">
             ${team1.length ? team1.map((p, i) => renderPlayerRow(p, i + 1, 't1')).join('') : '<div class="empty-state">-</div>'}
@@ -1639,7 +1678,10 @@ function renderCurrent(round) {
         <div class="team-card team-red">
           <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--red-bd);">
             <span class="team-title"><i class="bi bi-shield-fill me-1"></i>RED TEAM</span>
-            <span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum2}</span>
+            <div class="d-flex gap-1">
+              ${winRateMode ? `<span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;" title="チーム平均勝率（Laplace 平滑化）">勝率 ${Math.round(calcTeamWinRate(team2) * 100)}%</span>` : ''}
+              <span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum2}</span>
+            </div>
           </div>
           <div class="d-flex flex-column gap-1">
             ${team2.length ? team2.map((p, i) => renderPlayerRow(p, i + 1, 't2')).join('') : '<div class="empty-state">-</div>'}
@@ -1704,8 +1746,11 @@ function renderWinnerSection(round) {
 function renderPlayerRow(player, number, source) {
   const lg = player.lockGroup || 0;
   const lockHtml = lg ? `<span class="lock-badge lg-${lg}" title="ロックグループ ${LOCK_LABELS[lg]}">🔒${LOCK_LABELS[lg]}</span>` : '';
+  const _w = getWinCount(player.id);
+  const _l = getLossCount(player.id);
+  const _pct = (_w + _l) === 0 ? '—' : Math.round(_w / (_w + _l) * 100) + '%';
   const winHtml = winRateMode
-    ? `<span class="win-pill ${getWinRateClass(player.id)}" title="勝-負">${getWinCount(player.id)}-${getLossCount(player.id)}</span>`
+    ? `<span class="win-pill ${getWinRateClass(player.id)}" title="${_w}勝${_l}敗 / 勝率${_pct}">${_w}-${_l}</span>`
     : '';
   const dragAttrs = source
     ? `draggable="true" data-src="${source}" data-pid="${player.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" onclick="onSwapTap(event)"`

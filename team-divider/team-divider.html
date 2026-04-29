@@ -1286,7 +1286,7 @@ function renderCurrent(round) {
   const diff = Math.abs(rankSum1 - rankSum2);
   const modeLabel = MODE_LABELS[round.mode] || round.mode;
   const selLabel = SELECTION_LABELS[round.selectionMode] || '';
-  const biasLabel = (round.selectionMode === 'balance' && round.bias) ? BIAS_LABELS[round.bias] || '' : '';
+  const biasLabel = (round.selectionMode === 'balance' && round.bias && round.bias !== 'none') ? BIAS_LABELS[round.bias] || '' : '';
   const dupRound = findDuplicateRound(round);
 
   // レシオ分布情報
@@ -1381,7 +1381,7 @@ function renderHistory() {
   el.innerHTML = [...rounds].reverse().map(round => {
     const modeLabel = MODE_LABELS[round.mode] || round.mode;
     const selLabel = SELECTION_LABELS[round.selectionMode] || '';
-    const biasLabel = (round.selectionMode === 'balance' && round.bias) ? BIAS_LABELS[round.bias] || '' : '';
+    const biasLabel = (round.selectionMode === 'balance' && round.bias && round.bias !== 'none') ? BIAS_LABELS[round.bias] || '' : '';
     const rs1 = calcRankSum(round.t1);
     const rs2 = calcRankSum(round.t2);
 

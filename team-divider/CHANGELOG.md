@@ -1,5 +1,55 @@
 # Team Divider - 更新ログ
 
+## v1.16（2026-04-29）
+
+ロジック周りのリファクタリング。動作仕様は変更なし。
+
+### 共通処理の集約
+
+- **`commitRoundChange(round, opts)`** を新設
+  - ラウンド更新後の定型処理（キャッシュ無効化 → 保存 → ボタン状態 → 描画 → 重複検出）を1関数に集約
+  - generateRound / setWinner / rerollRound / onDrop / onSwapTap / resetRounds で利用
+  - 約60行の重複コードを削減
+- **`swapInRound(round, srcLoc, srcId, dstLoc, dstId)`** を新設
+  - D&D とタップスワップで重複していたID単位のスワップ処理を統合
+  - 「勝敗判定モード時に勝者をクリア」「selectedIds 再計算」もここに集約
+- **`optimizationScore(team1, team2)`** を新設
+  - チーム分け最適化スコアの計算を統一（過去の同チームペア + 勝率差 \* 2）
+  - `optimizeSameRankSwaps` と `balanceByRankSum` Pass 2 で同関数を参照
+
+### パフォーマンス: 統計キャッシュ
+
+- **getPlayCount / getSpecCount / getWinCount / getLossCount / getLastPlayedIndex** をキャッシュ越しに変更
+  - 旧実装は呼出し毎に rounds 全走査していた（描画1回で数百回スキャン）
+  - キャッシュ層 (`_statsCache`, Map<id, stats>) で1回の走査で全プレイヤー分集計
+  - rounds / players が変化したら `invalidateStatsCache()` で次回アクセス時に再構築
+  - 描画の重さが体感できるレベル（〜数十ラウンド × 20人規模）で改善
+
+### スキーマバージョン
+
+- `localStorage` 保存データに **`schemaVersion`** を明示的に保存
+- `migrateData(data)` で旧バージョンを順次最新形式へマイグレーション
+  - v1: 〜v1.10（players/pid のみ）
+  - v2: v1.11〜（lockGroup 追加）
+  - v3: v1.13〜（rounds/winRateMode/winner 追加）
+  - v4: v1.16〜（schemaVersion 明示）
+- 将来の破壊的変更時に互換性を維持しやすい構造に
+
+### 整理
+
+- バグ修正: balanceByRankSum Pass 2 が古い `calcWinDiff` を参照したまま残っていた問題を修正
+  （v1.15 の更新が片側のみだった）
+- 未使用関数の削除: `calcWinDiff` / `calcTeamWins`（v1.15 で `calcWinRateScore` に置換済み）
+- 未使用 CSS の削除: `.btn-flag` / `.btn-flag.on-pri` / `.btn-flag.on-brk` / `.btn-lock` 系
+  （v1.14 で `.icon-btn` に統合済み）
+
+### 残課題（次回以降）
+
+- **内部 `rank: 0,1,2` → `1,2,3` 統一** は今回見送り。影響範囲が広く（30箇所超のインデックス算術）、
+  独立した PR として扱うのが安全と判断。HANDOVER に長期 TODO として残置。
+
+---
+
 ## v1.15（2026-04-29）
 
 勝率均等化ロジックの改善。

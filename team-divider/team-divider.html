@@ -238,6 +238,20 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .dup-link { cursor:pointer; transition:opacity .15s; }
 .dup-link:hover { opacity:.7; }
 
+/* Quick help card */
+.quick-help-card { background:linear-gradient(135deg,#fdfaf3,#fff); border:1px solid var(--gold-line); border-radius:.5rem; padding:.65rem .85rem; }
+.quick-help-card .qh-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
+.quick-help-card .qh-title { font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:2px; color:var(--gold); }
+.quick-help-card .qh-toggle { background:none; border:none; color:var(--gold); cursor:pointer; padding:0 .25rem; font-size:.85rem; transition:transform .2s; }
+.quick-help-card.collapsed .qh-toggle { transform:rotate(180deg); }
+.quick-help-card.collapsed .qh-head { margin-bottom:0; }
+.quick-help-card.collapsed .qh-body { display:none; }
+.qh-body { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:.35rem .8rem; font-size:.74rem; color:var(--text); }
+.qh-row { display:flex; align-items:flex-start; gap:.45rem; line-height:1.5; }
+.qh-tag { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); padding:.05rem .4rem; border-radius:.25rem; font-size:.62rem; font-weight:600; min-width:54px; text-align:center; flex-shrink:0; letter-spacing:1px; }
+.qh-row .qh-icon { color:var(--gold); flex-shrink:0; }
+.qh-row strong { color:var(--text); font-weight:600; }
+
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
@@ -297,6 +311,42 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
     <!-- Main -->
     <div class="col-12 col-md-8 col-xl-9 p-3 d-flex flex-column gap-3">
+
+      <!-- Quick Help -->
+      <div class="quick-help-card" id="quickHelpCard">
+        <div class="qh-head">
+          <span class="qh-title"><i class="bi bi-info-circle me-1"></i>操作ガイド</span>
+          <button class="qh-toggle" onclick="toggleQuickHelp()" title="折りたたみ／展開">
+            <i class="bi bi-chevron-up"></i>
+          </button>
+        </div>
+        <div class="qh-body">
+          <div class="qh-row">
+            <span class="qh-tag">参加者</span>
+            <span>レシオバッジ=<strong>クリックで変更</strong> / <i class="bi bi-star qh-icon"></i>★優先・<i class="bi bi-eye qh-icon"></i>👁待機・<i class="bi bi-lock qh-icon"></i>🔒ロックグループ・<i class="bi bi-x-lg qh-icon"></i>削除</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">チーム</span>
+            <span><strong>D&amp;D</strong>または<strong>2人タップ</strong>でチーム⇔待機者を入替</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">モード</span>
+            <span>チーム分け方式・選出方式・選出傾向・<i class="bi bi-trophy qh-icon"></i>勝敗判定 を下のカードで設定</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">勝敗</span>
+            <span>勝敗判定モードON時、ラウンド毎に<strong>勝者を入力</strong>すると次ラウンド生成可能になる</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">設定</span>
+            <span>右上 <i class="bi bi-three-dots-vertical qh-icon"></i> から 履歴リセット・データ削除・詳細ヘルプ</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">重複</span>
+            <span>過去と同じ組み合わせは<strong>赤バッジ</strong>で警告。クリックで該当ラウンドへジャンプ</span>
+          </div>
+        </div>
+      </div>
 
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <span style="font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:2px;color:var(--gold);" id="roundLabel">ROUND —</span>
@@ -539,6 +589,24 @@ function onToggleWinRateMode() {
 function openHelpModal() {
   const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('helpModal'));
   modal.show();
+}
+
+/** クイックヘルプの折りたたみ／展開（状態を localStorage に保存） */
+const QUICK_HELP_KEY = 'td_quick_help_collapsed';
+function toggleQuickHelp() {
+  const card = document.getElementById('quickHelpCard');
+  card.classList.toggle('collapsed');
+  try {
+    localStorage.setItem(QUICK_HELP_KEY, card.classList.contains('collapsed') ? '1' : '0');
+  } catch (err) { /* ignore */ }
+}
+
+/** クイックヘルプの状態を復元 */
+function restoreQuickHelp() {
+  try {
+    const collapsed = localStorage.getItem(QUICK_HELP_KEY) === '1';
+    if (collapsed) document.getElementById('quickHelpCard').classList.add('collapsed');
+  } catch (err) { /* ignore */ }
 }
 
 /** 勝率に応じたCSSクラスを返す（W-Lピル用） */
@@ -1937,6 +2005,7 @@ function clearSave() {
 // ═══════════════════════════════════════════════════════
 
 loadData();
+restoreQuickHelp();
 
 </script>
 </body>

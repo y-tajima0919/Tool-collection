@@ -15,6 +15,7 @@
 3. `git add → commit → push origin main`
 4. **本番反映**: `scp team-divider/team-divider.html sakura:www/noeyxy/tools/team-divider.html`
    - SSH エイリアス `sakura` は `~/.ssh/config` に設定済み
+   - ツール一覧ページ更新時: `scp index.html sakura:www/noeyxy/tools/index.html`
    - ドキュメントだけの変更（README/HANDOVER/CHANGELOG）は scp 不要
 
 ## 必ず使う共通ヘルパー

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAM DIVIDER v1.13</title>
+<title>TEAM DIVIDER v1.14</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -157,7 +157,86 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .winner-badge { font-family:'Cinzel',serif; font-size:.78rem; font-weight:700; letter-spacing:2px; padding:.3rem .8rem; border-radius:.35rem; }
 .winner-badge.blue { color:var(--blue); background:var(--blue-bg); border:1.5px solid var(--blue-bd); }
 .winner-badge.red  { color:var(--red);  background:var(--red-bg);  border:1.5px solid var(--red-bd); }
-.win-pill { font-size:.6rem; padding:.08rem .35rem; border-radius:.25rem; background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); white-space:nowrap; }
+.win-pill { font-size:.6rem; padding:.08rem .35rem; border-radius:.25rem; background:#f4f4f4; color:var(--text-muted); border:1px solid var(--border); white-space:nowrap; }
+.win-pill.wr-bad  { background:#fde7e7; color:#b03030; border-color:#e8b8b8; }
+.win-pill.wr-mid  { background:#fff5e6; color:#a06820; border-color:#e8d0a0; }
+.win-pill.wr-good { background:#e6f5ee; color:#207040; border-color:#a8d8c0; }
+.win-pill.wr-top  { background:#e8f0fc; color:#1858a8; border-color:#a8c0e8; }
+
+/* Compact toggle pill group */
+.toggle-pills { display:inline-flex; border:1px solid var(--border); border-radius:.4rem; overflow:hidden; background:#fafafa; }
+.toggle-pills label { font-size:.74rem; padding:.3rem .7rem; cursor:pointer; color:var(--text-muted); border-right:1px solid var(--border); transition:all .15s; user-select:none; line-height:1.4; }
+.toggle-pills label:last-child { border-right:none; }
+.toggle-pills input[type="radio"] { display:none; }
+.toggle-pills input:checked + label, .toggle-pills label.active { background:var(--gold); color:#fff; font-weight:600; }
+.toggle-pills label:hover { background:rgba(184,146,42,.1); }
+.toggle-pills input:checked + label:hover { background:var(--gold); }
+
+/* Switch toggle */
+.switch-toggle { position:relative; display:inline-block; width:34px; height:18px; flex-shrink:0; }
+.switch-toggle input { opacity:0; width:0; height:0; }
+.switch-toggle .slider { position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:18px; transition:.2s; }
+.switch-toggle .slider:before { position:absolute; content:""; height:14px; width:14px; left:2px; top:2px; background:#fff; border-radius:50%; transition:.2s; }
+.switch-toggle input:checked + .slider { background:var(--gold); }
+.switch-toggle input:checked + .slider:before { transform:translateX(16px); }
+
+/* Mode row (compact horizontal) */
+.mode-row { display:flex; align-items:center; gap:.6rem; padding:.4rem 0; flex-wrap:wrap; }
+.mode-row + .mode-row { border-top:1px dashed var(--border); }
+.mode-row-label { font-size:.7rem; color:var(--text-muted); letter-spacing:1px; min-width:90px; flex-shrink:0; font-weight:500; }
+
+/* Compact player list row */
+.player-item.compact { padding:.3rem .45rem; gap:.3rem; }
+.player-item .icon-btn { width:24px; height:24px; padding:0; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); background:transparent; color:var(--text-muted); border-radius:.25rem; cursor:pointer; transition:all .15s; flex-shrink:0; font-size:.72rem; }
+.player-item .icon-btn:hover { border-color:var(--gold); color:var(--gold); }
+.player-item .icon-btn.active-pri { border-color:var(--gold); color:var(--gold); background:var(--gold-bg); }
+.player-item .icon-btn.active-brk { border-color:#888; color:#666; background:#f0f0f0; }
+.player-item .icon-btn.active-lock-1 { border-color:var(--lock1-c); color:var(--lock1-c); background:var(--lock1-bg); }
+.player-item .icon-btn.active-lock-2 { border-color:var(--lock2-c); color:var(--lock2-c); background:var(--lock2-bg); }
+.player-item .icon-btn.active-lock-3 { border-color:var(--lock3-c); color:var(--lock3-c); background:var(--lock3-bg); }
+.player-item .icon-btn.del:hover { border-color:#dc3545; color:#dc3545; background:#fde7e7; }
+.player-item .pname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.84rem; }
+
+/* Status pill (generate blocked等) */
+.status-pill { display:inline-flex; align-items:center; gap:.3rem; padding:.25rem .6rem; border-radius:2rem; font-size:.7rem; font-weight:500; background:#fff5e6; color:#a06820; border:1px solid #e8d0a0; }
+.status-pill.danger { background:#fde7e7; color:#b03030; border-color:#e8b8b8; }
+
+/* D&D / tap-to-swap */
+.team-player.swap-selected, .spec-chip.swap-selected { outline:2px solid var(--gold); outline-offset:-2px; background:var(--gold-bg)!important; box-shadow:0 0 0 4px rgba(184,146,42,.15); }
+.swap-hint { font-size:.65rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:.25rem; }
+
+/* Help modal trigger */
+.help-link { background:none; border:none; color:var(--text-muted); font-size:.72rem; padding:0; cursor:pointer; text-decoration:underline; }
+.help-link:hover { color:var(--gold); }
+
+/* Help modal */
+.modal-content { border-radius:.6rem; }
+.modal-help dt { color:var(--gold); font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:1px; margin-top:.6rem; }
+.modal-help dd { font-size:.82rem; color:var(--text); margin:.15rem 0 .4rem 1.2rem; }
+
+/* Generate button disabled */
+.btn-generate:disabled { background:#ccc; cursor:not-allowed; transform:none; opacity:.7; }
+.btn-generate:disabled:hover { opacity:.7; }
+
+/* Settings menu (kebab) */
+.settings-btn { background:none; border:1px solid var(--border); color:var(--text-muted); width:34px; height:34px; padding:0; border-radius:.35rem; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+.settings-btn:hover { background:#f4f4f4; color:var(--text); }
+.dropdown-menu { font-size:.82rem; }
+
+/* Round summary bar */
+.round-summary { display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding:.45rem .75rem; background:#fafafa; border:1px solid var(--border); border-radius:.4rem; flex-wrap:wrap; font-size:.74rem; }
+.round-summary .meta { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+
+/* History compact */
+.history-item.with-winner-blue { border-left:3px solid var(--blue); }
+.history-item.with-winner-red  { border-left:3px solid var(--red); }
+.history-winner { font-family:'Cinzel',serif; font-size:.7rem; font-weight:700; letter-spacing:1px; padding:.12rem .45rem; border-radius:.25rem; }
+.history-winner.blue { color:var(--blue); background:var(--blue-bg); border:1px solid var(--blue-bd); }
+.history-winner.red  { color:var(--red);  background:var(--red-bg);  border:1px solid var(--red-bd); }
+
+/* Duplicate badge clickable */
+.dup-link { cursor:pointer; transition:opacity .15s; }
+.dup-link:hover { opacity:.7; }
 
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
@@ -168,7 +247,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
 <div class="app-header">
   <div>
-    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.13</span></h1>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.14</span></h1>
     <p>BALANCED MATCHMAKING SYSTEM</p>
   </div>
 </div>
@@ -210,15 +289,8 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
       </div>
 
       <div class="border-top pt-2 mt-auto" style="border-color:var(--border)!important;">
-        <div style="font-size:.7rem;color:var(--text-muted);line-height:2.1;">
-          <div><i class="bi bi-controller" style="font-size:.65rem;"></i> 参加 ／ <i class="bi bi-eye" style="font-size:.65rem;"></i> 待機 （累計回数）</div>
-          <div><span style="color:var(--gold);font-weight:500;">★優先</span> = 次ラウンドで必ず参加</div>
-          <div><span style="color:#888;font-weight:500;">👁待機</span> = 今ラウンドを欠席し待機者になる</div>
-          <div><span style="color:var(--lock1-c);font-weight:500;">🔒A/B/C</span> = 同じグループは同じチームに固定</div>
-          <div>待機者は次ラウンドで自動優先参加</div>
-        </div>
-        <button class="btn btn-outline-danger btn-sm w-100 mt-2" style="font-size:.72rem;" onclick="clearSave()">
-          <i class="bi bi-trash me-1"></i>保存データを削除
+        <button class="help-link w-100 text-start" style="font-size:.72rem;" onclick="openHelpModal()">
+          <i class="bi bi-question-circle me-1"></i>アイコンの意味・操作方法を見る
         </button>
       </div>
     </div>
@@ -231,6 +303,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         <button class="btn btn-generate px-3 py-2" onclick="generateRound()">
           <i class="bi bi-shuffle me-1"></i>次のラウンド生成
         </button>
+        <span id="generateStatus" class="d-none"></span>
         <div class="d-none align-items-center gap-2" id="rerollGroup" style="background:rgba(200,120,32,.06);border:1px solid rgba(200,120,32,.25);border-radius:.4rem;padding:.3rem .6rem;">
           <button class="btn btn-reroll px-3 py-2" id="rerollBtn" onclick="rerollRound()">
             <i class="bi bi-arrow-repeat me-1"></i>リロール
@@ -240,89 +313,65 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
             <label class="form-check-label" for="rerollIncludeOverflow" style="color:var(--text);">待機者を含めて再抽選</label>
           </div>
         </div>
-        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="resetRounds()">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>履歴リセット
-        </button>
+        <div class="dropdown ms-auto">
+          <button class="settings-btn" data-bs-toggle="dropdown" aria-expanded="false" title="設定">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" onclick="openHelpModal()"><i class="bi bi-question-circle me-2"></i>操作ヘルプ</button></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item text-danger" onclick="resetRounds()"><i class="bi bi-arrow-counterclockwise me-2"></i>ラウンド履歴をリセット</button></li>
+            <li><button class="dropdown-item text-danger" onclick="clearSave()"><i class="bi bi-trash me-2"></i>保存データを全削除</button></li>
+          </ul>
+        </div>
       </div>
 
       <!-- Mode -->
       <div class="mode-card">
-        <div class="section-label"><i class="bi bi-sliders me-1"></i>チーム分けモード</div>
-        <div class="d-flex gap-4 flex-wrap">
-          <div class="form-check mb-0">
-            <input class="form-check-input" type="radio" name="mode" id="mRC" value="rank_count" checked>
-            <label class="form-check-label" for="mRC">
-              <strong>均等レシオ分け</strong>
-              <span class="ms-1 badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:400;font-size:.65rem;">標準</span>
-              <div style="font-size:.72rem;color:var(--text-muted);">各レシオの人数が両チームで均等になるよう分配</div>
-            </label>
-          </div>
-          <div class="form-check mb-0">
-            <input class="form-check-input" type="radio" name="mode" id="mRS" value="rank_sum">
-            <label class="form-check-label" for="mRS">
-              <strong>レシオ合計均等</strong>
-              <span class="ms-1 badge" style="background:#f8f8f8;color:var(--text-muted);border:1px solid var(--border);font-weight:400;font-size:.65rem;">オプション</span>
-              <div style="font-size:.72rem;color:var(--text-muted);">スネークドラフトでレシオ合計が均等になるよう分配</div>
-            </label>
+        <div class="section-label d-flex justify-content-between align-items-center" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+          <span><i class="bi bi-sliders me-1"></i>設定</span>
+          <button class="help-link" onclick="openHelpModal()" title="操作ヘルプ"><i class="bi bi-question-circle me-1"></i>ヘルプ</button>
+        </div>
+        <div class="mode-row">
+          <span class="mode-row-label">チーム分け</span>
+          <div class="toggle-pills">
+            <input type="radio" name="mode" id="mRC" value="rank_count" checked>
+            <label for="mRC" title="各レシオの人数が両チームで均等になるよう分配">均等レシオ</label>
+            <input type="radio" name="mode" id="mRS" value="rank_sum">
+            <label for="mRS" title="スネークドラフトでレシオ合計が均等になるよう分配">合計均等</label>
           </div>
         </div>
-        <div class="border-top mt-2 pt-2" style="border-color:var(--border)!important;">
-          <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-people me-1"></i>選出方式</div>
-          <div class="d-flex gap-4 flex-wrap">
-            <div class="form-check mb-0">
-              <input class="form-check-input" type="radio" name="selectionMode" id="smBalance" value="balance" checked onchange="toggleBiasOpts()">
-              <label class="form-check-label" for="smBalance">
-                <strong>バランス優先</strong>
-                <div style="font-size:.72rem;color:var(--text-muted);">レシオの均衡を重視（連戦を許可）</div>
-              </label>
-            </div>
-            <div class="form-check mb-0">
-              <input class="form-check-input" type="radio" name="selectionMode" id="smRotation" value="rotation" onchange="toggleBiasOpts()">
-              <label class="form-check-label" for="smRotation">
-                <strong>ローテーション優先</strong>
-                <div style="font-size:.72rem;color:var(--text-muted);">全員が均等に参加することを重視</div>
-              </label>
-            </div>
+        <div class="mode-row">
+          <span class="mode-row-label">選出方式</span>
+          <div class="toggle-pills">
+            <input type="radio" name="selectionMode" id="smBalance" value="balance" checked onchange="toggleBiasOpts()">
+            <label for="smBalance" title="レシオの均衡を重視（連戦を許可）">バランス</label>
+            <input type="radio" name="selectionMode" id="smRotation" value="rotation" onchange="toggleBiasOpts()">
+            <label for="smRotation" title="全員が均等に参加することを重視">ローテーション</label>
           </div>
-            <div class="form-check mt-2 mb-0" style="font-size:.78rem;">
-              <input class="form-check-input" type="checkbox" id="minOnePerRatio" checked>
-              <label class="form-check-label" for="minOnePerRatio">各レシオから最低1名は選出する</label>
-            </div>
-          <div class="mt-2" id="biasOpts">
-            <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-sort-numeric-down me-1"></i>選出傾向（バランス優先時）</div>
-            <div class="d-flex gap-4 flex-wrap">
-              <div class="form-check mb-0">
-                <input class="form-check-input" type="radio" name="bias" id="biasNone" value="none" checked>
-                <label class="form-check-label" for="biasNone">
-                  <strong>なし</strong>
-                  <div style="font-size:.72rem;color:var(--text-muted);">どちらにも偏らない（参加回数バランスのみで選出）</div>
-                </label>
-              </div>
-              <div class="form-check mb-0">
-                <input class="form-check-input" type="radio" name="bias" id="biasLow" value="low">
-                <label class="form-check-label" for="biasLow">
-                  <strong>低レシオ優先</strong>
-                  <div style="font-size:.72rem;color:var(--text-muted);">レシオが低い人を多く選出</div>
-                </label>
-              </div>
-              <div class="form-check mb-0">
-                <input class="form-check-input" type="radio" name="bias" id="biasHigh" value="high">
-                <label class="form-check-label" for="biasHigh">
-                  <strong>高レシオ優先</strong>
-                  <div style="font-size:.72rem;color:var(--text-muted);">レシオが高い人を多く選出</div>
-                </label>
-              </div>
-            </div>
+          <label class="d-inline-flex align-items-center gap-1" style="font-size:.74rem;color:var(--text-muted);cursor:pointer;">
+            <input type="checkbox" id="minOnePerRatio" checked style="margin:0;">
+            各レシオ最低1名
+          </label>
+        </div>
+        <div class="mode-row" id="biasOpts">
+          <span class="mode-row-label">選出傾向</span>
+          <div class="toggle-pills">
+            <input type="radio" name="bias" id="biasNone" value="none" checked>
+            <label for="biasNone" title="どちらにも偏らない（参加回数バランスのみで選出）">均等</label>
+            <input type="radio" name="bias" id="biasLow" value="low">
+            <label for="biasLow" title="レシオが低い人を多く選出">低レシオ優先</label>
+            <input type="radio" name="bias" id="biasHigh" value="high">
+            <label for="biasHigh" title="レシオが高い人を多く選出">高レシオ優先</label>
           </div>
         </div>
-        <div class="border-top mt-2 pt-2" style="border-color:var(--border)!important;">
-          <div class="form-check mb-0" style="font-size:.82rem;">
-            <input class="form-check-input" type="checkbox" id="winRateMode" onchange="onToggleWinRateMode()">
-            <label class="form-check-label" for="winRateMode">
-              <strong><i class="bi bi-trophy me-1" style="color:var(--gold);"></i>勝敗判定モード</strong>
-              <div style="font-size:.72rem;color:var(--text-muted);">ラウンドごとに勝者を入力。チーム分けで勝利数を均等化（次ラウンド生成は勝者入力後のみ）</div>
-            </label>
-          </div>
+        <div class="mode-row">
+          <span class="mode-row-label"><i class="bi bi-trophy me-1" style="color:var(--gold);"></i>勝敗判定</span>
+          <label class="switch-toggle">
+            <input type="checkbox" id="winRateMode" onchange="onToggleWinRateMode()">
+            <span class="slider"></span>
+          </label>
+          <span style="font-size:.72rem;color:var(--text-muted);">勝者入力で勝率均等化</span>
         </div>
       </div>
 
@@ -337,6 +386,53 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content modal-help">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-family:'Cinzel',serif;color:var(--gold);letter-spacing:2px;">
+          <i class="bi bi-question-circle me-2"></i>HELP
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+      </div>
+      <div class="modal-body">
+        <dl>
+          <dt>参加者の操作</dt>
+          <dd><span class="rank-badge rb-0" style="display:inline-flex;width:18px;height:18px;font-size:.55rem;vertical-align:middle;">1</span> レシオバッジをクリックで <strong>1→2→3→1</strong> 変更</dd>
+          <dd><i class="bi bi-star-fill" style="color:var(--gold);"></i> <strong>★優先</strong> = 次ラウンドで必ず参加</dd>
+          <dd><i class="bi bi-eye"></i> <strong>👁待機</strong> = 今ラウンドを欠席（待機回数にもカウントされない）</dd>
+          <dd><span class="lock-badge lg-1" style="vertical-align:middle;">🔒A</span> <strong>ロックグループ</strong> = 同じグループ（A/B/C）は必ず同じチーム</dd>
+          <dd><i class="bi bi-controller"></i> 参加回数 / <i class="bi bi-eye"></i> 待機回数 / <i class="bi bi-trophy" style="color:var(--gold);"></i> 勝-負（勝敗判定モード時）</dd>
+
+          <dt>チーム分けモード</dt>
+          <dd><strong>均等レシオ</strong>: 各レシオの人数を両チーム均等に分配（標準）</dd>
+          <dd><strong>合計均等</strong>: スネークドラフトでレシオ合計が均等になるよう分配</dd>
+
+          <dt>選出方式</dt>
+          <dd><strong>バランス</strong>: レシオの均衡を重視（連戦許可）</dd>
+          <dd><strong>ローテーション</strong>: 全員均等に参加することを重視</dd>
+          <dd><strong>各レシオ最低1名</strong>: ON時は各レシオから必ず1名以上選出</dd>
+
+          <dt>選出傾向（バランス時）</dt>
+          <dd><strong>均等</strong>: どちらにも偏らない（参加回数バランスのみで選出）</dd>
+          <dd><strong>低レシオ優先</strong>: レシオが低い人を多く選出</dd>
+          <dd><strong>高レシオ優先</strong>: レシオが高い人を多く選出</dd>
+
+          <dt>勝敗判定モード</dt>
+          <dd>ON時、ラウンド毎に勝者を入力。次ラウンド生成は勝者入力後のみ</dd>
+          <dd>各プレイヤーの勝-負がカウントされ、チーム分けで勝率を均等化</dd>
+
+          <dt>ラウンドの操作</dt>
+          <dd><strong>D&D / タップ</strong>: チーム⇔待機者のプレイヤーを入替（タップで2人選択 → スワップ）</dd>
+          <dd><strong>リロール</strong>: 現ラウンドを再シャッフル。「待機者を含めて再抽選」ONで全員から再選出</dd>
+          <dd>待機者は <strong>次ラウンドで優先参加</strong>（自動ローテーション）</dd>
+        </dl>
+      </div>
     </div>
   </div>
 </div>
@@ -375,7 +471,7 @@ const RANK_LABELS = ['1', '2', '3'];
 const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
 const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
 const SELECTION_LABELS = { rotation: 'ローテーション', balance: 'バランス' };
-const BIAS_LABELS = { none: 'バイアスなし', low: '低レシオ優先', high: '高レシオ優先' };
+const BIAS_LABELS = { none: '均等', low: '低レシオ優先', high: '高レシオ優先' };
 // ロックグループ: 0=未指定, 1=A, 2=B, 3=C （同じグループは必ず同じチーム）
 const LOCK_LABELS = ['', 'A', 'B', 'C'];
 const SAVE_KEY = 'lol_td_players';
@@ -437,6 +533,24 @@ function onToggleWinRateMode() {
   }
   renderList();
   updateGenerateButtonState();
+}
+
+/** ヘルプモーダルを開く */
+function openHelpModal() {
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('helpModal'));
+  modal.show();
+}
+
+/** 勝率に応じたCSSクラスを返す（W-Lピル用） */
+function getWinRateClass(id) {
+  const w = getWinCount(id);
+  const l = getLossCount(id);
+  if (w + l === 0) return '';
+  const rate = w / (w + l);
+  if (rate < 0.3) return 'wr-bad';
+  if (rate < 0.5) return 'wr-mid';
+  if (rate < 0.7) return 'wr-good';
+  return 'wr-top';
 }
 
 /** トースト通知 */
@@ -864,7 +978,7 @@ function generateRound() {
   document.getElementById('roundLabel').textContent = 'ROUND ' + round.num;
 
   const dup = findDuplicateRound(round);
-  if (dup !== null) toast('⚠ R' + dup + ' と同じ組み合わせです', 'danger');
+  if (dup !== null) toast('⚠ R' + dup.num + ' と' + (dup.swapped ? '同じ顔ぶれ（B/R逆転）' : '同じ組み合わせ') + 'です', 'danger');
 }
 
 /** 現ラウンドの勝者を設定（'t1' / 't2' / null） */
@@ -879,20 +993,22 @@ function setWinner(team) {
   updateGenerateButtonState();
 }
 
-/** 「次のラウンド生成」ボタンの有効/無効を更新 */
+/** 「次のラウンド生成」ボタンの有効/無効と状態ピルを更新 */
 function updateGenerateButtonState() {
   const btn = document.querySelector('button.btn-generate');
+  const status = document.getElementById('generateStatus');
   if (!btn) return;
-  if (winRateMode && rounds.length > 0 && !rounds[rounds.length - 1].winner) {
-    btn.disabled = true;
-    btn.style.opacity = '.5';
-    btn.style.cursor = 'not-allowed';
-    btn.title = '現ラウンドの勝者を入力してください';
-  } else {
-    btn.disabled = false;
-    btn.style.opacity = '';
-    btn.style.cursor = '';
-    btn.title = '';
+  const blocked = winRateMode && rounds.length > 0 && !rounds[rounds.length - 1].winner;
+  btn.disabled = blocked;
+  btn.title = blocked ? '現ラウンドの勝者を入力してください' : '';
+  if (status) {
+    if (blocked) {
+      status.className = 'status-pill';
+      status.innerHTML = '<i class="bi bi-exclamation-circle"></i>勝者入力待ち';
+    } else {
+      status.className = 'd-none';
+      status.innerHTML = '';
+    }
   }
 }
 
@@ -973,7 +1089,7 @@ function rerollRound() {
 
   const dup = findDuplicateRound(current);
   if (dup !== null) {
-    toast('⚠ R' + dup + ' と同じ組み合わせです', 'danger');
+    toast('⚠ R' + dup.num + ' と' + (dup.swapped ? '同じ顔ぶれ（B/R逆転）' : '同じ組み合わせ') + 'です', 'danger');
   } else {
     toast('リロール ' + current.rerolls + '回目 ／ ' + (MODE_LABELS[mode] || mode), 'warning');
   }
@@ -1319,7 +1435,7 @@ function calcRankSum(ids) {
 /**
  * 現在のラウンドと過去ラウンドのチーム構成が一致するか検出
  * Blue/Red 逆転も検出する
- * @returns {number|null} 一致したラウンド番号、なければ null
+ * @returns {{num: number, swapped: boolean} | null} 一致情報、なければ null
  */
 function findDuplicateRound(currentRound) {
   const setA = new Set(currentRound.t1);
@@ -1341,9 +1457,20 @@ function findDuplicateRound(currentRound) {
     const swapped = currentRound.t1.every(id => pastSetB.has(id))
       && currentRound.t2.every(id => pastSetA.has(id));
 
-    if (sameOrder || swapped) return past.num;
+    if (sameOrder) return { num: past.num, swapped: false };
+    if (swapped)   return { num: past.num, swapped: true };
   }
   return null;
+}
+
+/** 履歴の指定ラウンドへスクロール */
+function scrollToHistoryRound(num) {
+  const el = document.querySelector(`[data-history-round="${num}"]`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.style.transition = 'background .3s';
+  el.style.background = 'var(--gold-bg)';
+  setTimeout(() => { el.style.background = ''; }, 1200);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1366,26 +1493,32 @@ function renderList() {
     return;
   }
 
-  el.innerHTML = players.map(player => {
+  // 表示順: priority → 通常 → onBreak（最下段）。同区分内は登録順
+  const sorted = [...players].sort((a, b) => {
+    if (a.onBreak !== b.onBreak) return a.onBreak ? 1 : -1;
+    if (a.priority !== b.priority) return a.priority ? -1 : 1;
+    return a.id - b.id;
+  });
+
+  el.innerHTML = sorted.map(player => {
     const playCount = getPlayCount(player.id);
     const specCount = getSpecCount(player.id);
     const lg = player.lockGroup || 0;
-    const lockLabel = lg ? `🔒${LOCK_LABELS[lg]}` : '🔒';
-    const lockClass = lg ? ` lg-${lg}` : '';
+    const lockLabel = lg ? LOCK_LABELS[lg] : '🔒';
     const winHtml = winRateMode
-      ? `<span class="stat-pill" title="勝-負"><i class="bi bi-trophy" style="font-size:.58rem;color:var(--gold);"></i>&nbsp;<span class="v">${getWinCount(player.id)}-${getLossCount(player.id)}</span></span>`
+      ? `<span class="stat-pill ${getWinRateClass(player.id)}" title="勝-負"><i class="bi bi-trophy" style="font-size:.58rem;"></i>&nbsp;<span class="v">${getWinCount(player.id)}-${getLossCount(player.id)}</span></span>`
       : '';
 
-    return `<div class="player-item${player.onBreak ? ' on-break' : ''}">
-      <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" onclick="cycleRank(${player.id})" title="クリックでレシオ変更">${RANK_LABELS[player.rank]}</div>
-      <div class="flex-grow-1 text-truncate" style="max-width:72px;">${escapeHtml(player.name)}</div>
-      <span class="stat-pill"><i class="bi bi-controller" style="font-size:.58rem;"></i>&nbsp;<span class="v">${playCount}</span></span>
-      <span class="stat-pill"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
+    return `<div class="player-item compact${player.onBreak ? ' on-break' : ''}">
+      <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" onclick="cycleRank(${player.id})" title="レシオ変更（${RANK_LABELS[player.rank]}）">${RANK_LABELS[player.rank]}</div>
+      <div class="pname" title="${escapeHtml(player.name)}">${escapeHtml(player.name)}</div>
+      <span class="stat-pill" title="参加 ${playCount}回"><i class="bi bi-controller" style="font-size:.58rem;"></i>&nbsp;<span class="v">${playCount}</span></span>
+      <span class="stat-pill" title="待機 ${specCount}回"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
       ${winHtml}
-      <button class="btn-flag${player.priority ? ' on-pri' : ''}" onclick="togglePriority(${player.id})">★優先</button>
-      <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁待機</button>
-      <button class="btn-lock${lockClass}" onclick="cycleLockGroup(${player.id})" title="同チーム固定グループ">${lockLabel}</button>
-      <button class="btn btn-link btn-sm p-0 text-danger ms-1" onclick="deletePlayer(${player.id})"><i class="bi bi-x-lg"></i></button>
+      <button class="icon-btn${player.priority ? ' active-pri' : ''}" onclick="togglePriority(${player.id})" title="★優先（次ラウンド必ず参加）"><i class="bi bi-star${player.priority ? '-fill' : ''}"></i></button>
+      <button class="icon-btn${player.onBreak ? ' active-brk' : ''}" onclick="toggleBreak(${player.id})" title="👁待機（今ラウンドを欠席）"><i class="bi bi-eye${player.onBreak ? '-fill' : ''}"></i></button>
+      <button class="icon-btn${lg ? ' active-lock-' + lg : ''}" onclick="cycleLockGroup(${player.id})" title="ロックグループ（同チーム固定）">${lg ? lockLabel : '<i class="bi bi-lock"></i>'}</button>
+      <button class="icon-btn del" onclick="deletePlayer(${player.id})" title="削除"><i class="bi bi-x-lg"></i></button>
     </div>`;
   }).join('');
 }
@@ -1427,7 +1560,7 @@ function renderCurrent(round) {
         <div class="team-card team-blue">
           <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--blue-bd);">
             <span class="team-title"><i class="bi bi-shield-fill me-1"></i>BLUE TEAM</span>
-            <span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;">合計 ${rankSum1}</span>
+            <span class="badge" style="background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum1}</span>
           </div>
           <div class="d-flex flex-column gap-1">
             ${team1.length ? team1.map((p, i) => renderPlayerRow(p, i + 1, 't1')).join('') : '<div class="empty-state">-</div>'}
@@ -1438,7 +1571,7 @@ function renderCurrent(round) {
         <div class="team-card team-red">
           <div class="d-flex justify-content-between align-items-center pb-2 mb-2" style="border-bottom:1.5px solid var(--red-bd);">
             <span class="team-title"><i class="bi bi-shield-fill me-1"></i>RED TEAM</span>
-            <span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;">合計 ${rankSum2}</span>
+            <span class="badge" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);font-weight:500;font-size:.7rem;" title="レシオ合計値">レシオ計 ${rankSum2}</span>
           </div>
           <div class="d-flex flex-column gap-1">
             ${team2.length ? team2.map((p, i) => renderPlayerRow(p, i + 1, 't2')).join('') : '<div class="empty-state">-</div>'}
@@ -1454,7 +1587,7 @@ function renderCurrent(round) {
       ${selLabel ? `<span class="bbadge bg-light text-secondary border"><i class="bi bi-people me-1"></i>${selLabel}</span>` : ''}
       ${biasLabel ? `<span class="bbadge bg-light text-secondary border"><i class="bi bi-sort-numeric-down me-1"></i>${biasLabel}</span>` : ''}
       ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>リロール ${round.rerolls}回</span>` : ''}
-      ${dupRound !== null ? `<span class="bbadge bg-danger-subtle text-danger-emphasis"><i class="bi bi-exclamation-octagon me-1"></i>R${dupRound} と同じ組み合わせ</span>` : ''}
+      ${dupRound !== null ? `<span class="bbadge bg-danger-subtle text-danger-emphasis dup-link" onclick="scrollToHistoryRound(${dupRound.num})" title="R${dupRound.num} へジャンプ"><i class="bi bi-exclamation-octagon me-1"></i>R${dupRound.num} と${dupRound.swapped ? '同じ顔ぶれ(B/R逆転)' : '同じ組み合わせ'}</span>` : ''}
       ${rankDistInfo}
     </div>
     ${winRateMode ? renderWinnerSection(round) : ''}
@@ -1465,13 +1598,17 @@ function renderCurrent(round) {
       </div>
       <div class="d-flex flex-wrap gap-2">
         ${spectators.length
-          ? spectators.map(p => `<div class="spec-chip${p.priority ? ' has-pri' : ''}" draggable="true" data-src="specs" data-pid="${p.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          ? spectators.map(p => `<div class="spec-chip${p.priority ? ' has-pri' : ''}" draggable="true" data-src="specs" data-pid="${p.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" onclick="onSwapTap(event)">
               <span class="rank-badge ${RANK_BADGE_CLASSES[p.rank]}" style="width:18px;height:18px;font-size:.55rem;">${RANK_LABELS[p.rank]}</span>
               ${escapeHtml(p.name)}${p.priority ? ' <i class="bi bi-star-fill" style="color:var(--gold);font-size:.65rem;"></i>' : ''}
             </div>`).join('')
           : '<span class="empty-state">待機者なし（全員参加）</span>'
         }
         ${breaks.length ? `<span class="ms-2" style="font-size:.75rem;color:#888;align-self:center;">| 👁待機: ${breaks.map(p => escapeHtml(p.name)).join(', ')}</span>` : ''}
+      </div>
+      <div class="mt-2" style="font-size:.65rem;color:var(--text-muted);">
+        <i class="bi bi-info-circle me-1"></i>
+        プレイヤーを<strong>ドラッグ&ドロップ</strong>または<strong>2人タップ</strong>で入れ替え可能
       </div>
     </div>`;
 }
@@ -1480,9 +1617,10 @@ function renderCurrent(round) {
 function renderWinnerSection(round) {
   if (!round.winner) {
     return `<div class="winner-section mb-2">
-      <span style="font-size:.75rem;color:var(--text-muted);"><i class="bi bi-trophy me-1" style="color:var(--gold);"></i>勝者を選択してください:</span>
+      <span style="font-size:.78rem;color:var(--text);font-weight:500;"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>勝者を入力してください</span>
       <button class="btn-win btn-win-blue" onclick="setWinner('t1')"><i class="bi bi-shield-fill me-1"></i>BLUE 勝利</button>
       <button class="btn-win btn-win-red" onclick="setWinner('t2')"><i class="bi bi-shield-fill me-1"></i>RED 勝利</button>
+      <span style="font-size:.65rem;color:var(--text-muted);margin-left:auto;">入力すると次のラウンドが生成可能になります</span>
     </div>`;
   }
   const winLabel = round.winner === 't1' ? 'BLUE' : 'RED';
@@ -1490,7 +1628,7 @@ function renderWinnerSection(round) {
   return `<div class="winner-section mb-2">
     <span style="font-size:.75rem;color:var(--text-muted);">勝者:</span>
     <span class="winner-badge ${winClass}"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>${winLabel} 勝利</span>
-    <button class="btn-win btn-win-clear" onclick="setWinner(null)" title="勝者をクリア">変更</button>
+    <button class="btn-win btn-win-clear" onclick="setWinner(null)" title="勝者を未入力に戻す"><i class="bi bi-arrow-counterclockwise me-1"></i>やり直し</button>
   </div>`;
 }
 
@@ -1499,10 +1637,10 @@ function renderPlayerRow(player, number, source) {
   const lg = player.lockGroup || 0;
   const lockHtml = lg ? `<span class="lock-badge lg-${lg}" title="ロックグループ ${LOCK_LABELS[lg]}">🔒${LOCK_LABELS[lg]}</span>` : '';
   const winHtml = winRateMode
-    ? `<span class="win-pill" title="勝ち-負け">${getWinCount(player.id)}-${getLossCount(player.id)}</span>`
+    ? `<span class="win-pill ${getWinRateClass(player.id)}" title="勝-負">${getWinCount(player.id)}-${getLossCount(player.id)}</span>`
     : '';
   const dragAttrs = source
-    ? `draggable="true" data-src="${source}" data-pid="${player.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"`
+    ? `draggable="true" data-src="${source}" data-pid="${player.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" onclick="onSwapTap(event)"`
     : '';
   return `<div class="team-player" ${dragAttrs}>
     <div class="p-num">${number}</div>
@@ -1544,17 +1682,18 @@ function renderHistory() {
     const team2Html = round.t2.map(nameWithRatio).join(', ');
     const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
 
+    const winnerCls = round.winner === 't1' ? 'with-winner-blue' : (round.winner === 't2' ? 'with-winner-red' : '');
     const winnerHtml = round.winner
-      ? `<span class="winner-badge ${round.winner === 't1' ? 'blue' : 'red'}" style="font-size:.6rem;padding:.1rem .4rem;letter-spacing:1px;"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>${round.winner === 't1' ? 'B' : 'R'}勝</span>`
+      ? `<span class="history-winner ${round.winner === 't1' ? 'blue' : 'red'}"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>${round.winner === 't1' ? 'BLUE 勝利' : 'RED 勝利'}</span>`
       : '';
 
-    return `<div class="history-item">
-      <div class="d-flex align-items-center gap-2 mb-1">
+    return `<div class="history-item ${winnerCls}" data-history-round="${round.num}">
+      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
         <span class="r-badge">R${round.num}</span>
+        ${winnerHtml}
         <span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${modeLabel}</span>
         ${selLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${selLabel}</span>` : ''}
         ${biasLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${biasLabel}</span>` : ''}
-        ${winnerHtml}
         ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>${round.rerolls}回</span>` : ''}
       </div>
       <div style="color:var(--text-muted);line-height:1.8;">
@@ -1570,10 +1709,65 @@ function renderHistory() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  Drag & Drop（ラウンド生成後の手動入れ替え）
+//  Drag & Drop / Tap-to-Swap（ラウンド生成後の手動入れ替え）
 // ═══════════════════════════════════════════════════════
 
 let dragState = null; // { src: 't1'|'t2'|'specs', id: number, el: HTMLElement }
+let swapTapState = null; // { src, id, el } — タップ選択中
+
+/** タップで2人選んでスワップ（D&Dの代替・モバイル対応） */
+function onSwapTap(ev) {
+  // ドラッグ中はクリックイベントが発火しても処理しない
+  if (dragState) return;
+  ev.stopPropagation();
+  const el = ev.currentTarget;
+  const src = el.dataset.src;
+  const id = parseInt(el.dataset.pid, 10);
+
+  // 同じものを再タップ → 選択解除
+  if (swapTapState && swapTapState.src === src && swapTapState.id === id) {
+    swapTapState.el.classList.remove('swap-selected');
+    swapTapState = null;
+    return;
+  }
+
+  // 1人目を選択
+  if (!swapTapState) {
+    swapTapState = { src, id, el };
+    el.classList.add('swap-selected');
+    return;
+  }
+
+  // 2人目を選択 → スワップ実行
+  if (!rounds.length) { clearSwapTapState(); return; }
+  const round = rounds[rounds.length - 1];
+  const arr = { t1: round.t1, t2: round.t2, specs: round.specs };
+  const srcArr = arr[swapTapState.src];
+  const dstArr = arr[src];
+  const srcIdx = srcArr ? srcArr.indexOf(swapTapState.id) : -1;
+  const dstIdx = dstArr ? dstArr.indexOf(id) : -1;
+  if (srcIdx === -1 || dstIdx === -1) { clearSwapTapState(); return; }
+
+  srcArr[srcIdx] = id;
+  dstArr[dstIdx] = swapTapState.id;
+  round.selectedIds = [...round.t1, ...round.t2];
+  if (winRateMode) round.winner = null;
+
+  saveData();
+  updateGenerateButtonState();
+  swapTapState = null; // re-render で選択もクリア
+  renderCurrent(round);
+  renderHistory();
+  renderList();
+
+  const dup = findDuplicateRound(round);
+  if (dup !== null) toast('⚠ R' + dup.num + ' と' + (dup.swapped ? '同じ顔ぶれ（B/R逆転）' : '同じ組み合わせ') + 'になりました', 'danger');
+}
+
+function clearSwapTapState() {
+  if (swapTapState && swapTapState.el) swapTapState.el.classList.remove('swap-selected');
+  swapTapState = null;
+}
 
 function onDragStart(ev) {
   const el = ev.currentTarget;
@@ -1651,7 +1845,7 @@ function onDrop(ev) {
 
   // 重複ラウンド再チェック
   const dup = findDuplicateRound(round);
-  if (dup !== null) toast('⚠ R' + dup + ' と同じ組み合わせになりました', 'danger');
+  if (dup !== null) toast('⚠ R' + dup.num + ' と' + (dup.swapped ? '同じ顔ぶれ（B/R逆転）' : '同じ組み合わせ') + 'になりました', 'danger');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1721,8 +1915,20 @@ function loadData() {
 }
 
 function clearSave() {
-  if (!confirm('保存された参加者データを削除しますか？')) return;
+  if (!confirm('保存データ（参加者・ラウンド履歴・設定）をすべて削除しますか？')) return;
   localStorage.removeItem(SAVE_KEY);
+  players = [];
+  rounds = [];
+  nextPlayerId = 0;
+  winRateMode = false;
+  const winRateModeEl = document.getElementById('winRateMode');
+  if (winRateModeEl) winRateModeEl.checked = false;
+  showRerollControls(false);
+  renderCurrent(null);
+  renderHistory();
+  renderList();
+  updateGenerateButtonState();
+  document.getElementById('roundLabel').textContent = 'ROUND —';
   toast('保存データを削除しました', 'secondary');
 }
 

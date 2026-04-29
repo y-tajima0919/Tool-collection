@@ -830,20 +830,7 @@ function assignLanes(team) {
   };
 
   // 全順列を列挙
-  const perms = [];
-  const used = new Array(n).fill(false);
-  const cur = [];
-  (function gen() {
-    if (cur.length === n) { perms.push([...cur]); return; }
-    for (let i = 0; i < n; i++) {
-      if (used[i]) continue;
-      used[i] = true;
-      cur.push(i);
-      gen();
-      cur.pop();
-      used[i] = false;
-    }
-  })();
+  const perms = permuteIndices(n);
 
   // 各順列について、team[i] → LANES[perm[i]] の総スコアを計算
   let bestPerm = perms[0];
@@ -866,6 +853,120 @@ function assignLanes(team) {
     result[team[i].id] = LANES[bestPerm[i]];
   }
   return result;
+}
+
+/** 0..n-1 の全順列を返す（小さい n 専用） */
+function permuteIndices(n) {
+  const result = [];
+  const used = new Array(n).fill(false);
+  const cur = [];
+  (function gen() {
+    if (cur.length === n) { result.push([...cur]); return; }
+    for (let i = 0; i < n; i++) {
+      if (used[i]) continue;
+      used[i] = true;
+      cur.push(i);
+      gen();
+      cur.pop();
+      used[i] = false;
+    }
+  })();
+  return result;
+}
+
+/**
+ * 人数バランスモード専用: 両チームの同レシオが同レーンに揃うレーン割当
+ * 両チームのレシオ分布が同じ（rank_count モードの前提）であることを利用し、
+ * 「各レーンに割り当てるレシオ」を共通で決定 → 各チーム独立にプレイヤーを割当する。
+ *
+ * 例: rank分布が rank-1×2, rank-2×2, rank-3×1 の場合、
+ *     TOP=rank1, JG=rank1, MID=rank2, ADC=rank2, SUP=rank3 のような割当を選び、
+ *     両チームの TOP同士・JG同士... が必ず同レシオになる。
+ *
+ * @returns {Object} { playerId: lane } 両チーム合算のレーンマップ
+ */
+function assignLanesPaired(team1, team2) {
+  if (!team1.length || !team2.length) {
+    return { ...assignLanes(team1), ...assignLanes(team2) };
+  }
+
+  // レシオ別グループ
+  const grp1 = [[], [], []];
+  const grp2 = [[], [], []];
+  team1.forEach(p => grp1[p.rank].push(p));
+  team2.forEach(p => grp2[p.rank].push(p));
+
+  // 両チームのレシオ分布が一致しない場合は通常の独立割当にフォールバック
+  for (let r = 0; r < 3; r++) {
+    if (grp1[r].length !== grp2[r].length) {
+      return { ...assignLanes(team1), ...assignLanes(team2) };
+    }
+  }
+
+  const score = (player, lane) => {
+    if (!Array.isArray(player.lanes) || player.lanes.length === 0) return 0.5;
+    return player.lanes.includes(lane) ? 1 : 0;
+  };
+
+  // n人のプレイヤーをレーン集合 lanes（同サイズ）に最適割当（全順列ブルートフォース）
+  const bestAssignment = (lanes, ps) => {
+    if (ps.length === 0) return { score: 0, mapping: {} };
+    const perms = permuteIndices(ps.length);
+    let bestS = -Infinity;
+    let bestM = null;
+    for (const perm of perms) {
+      let s = 0;
+      const m = {};
+      for (let i = 0; i < ps.length; i++) {
+        s += score(ps[i], lanes[perm[i]]);
+        m[ps[i].id] = lanes[perm[i]];
+      }
+      if (s > bestS) { bestS = s; bestM = m; }
+    }
+    return { score: bestS, mapping: bestM };
+  };
+
+  // レーン → レシオ のマッピングを全列挙（multinomial）
+  const counts = [grp1[0].length, grp1[1].length, grp1[2].length];
+  const mappings = [];
+  (function gen(prefix, remaining) {
+    if (prefix.length === LANES.length) { mappings.push([...prefix]); return; }
+    for (let r = 0; r < 3; r++) {
+      if (remaining[r] > 0) {
+        remaining[r]--;
+        prefix.push(r);
+        gen(prefix, remaining);
+        prefix.pop();
+        remaining[r]++;
+      }
+    }
+  })([], [...counts]);
+
+  // 各マッピングについて、両チームの最適スコアを合算して最良を選ぶ
+  let bestTotal = -Infinity;
+  let bestResult = null;
+  for (const mapping of mappings) {
+    const t1Map = {};
+    const t2Map = {};
+    let totalScore = 0;
+    for (let r = 0; r < 3; r++) {
+      const lanesForRank = [];
+      mapping.forEach((rank, i) => { if (rank === r) lanesForRank.push(LANES[i]); });
+      const a1 = bestAssignment(lanesForRank, grp1[r]);
+      const a2 = bestAssignment(lanesForRank, grp2[r]);
+      totalScore += a1.score + a2.score;
+      Object.assign(t1Map, a1.mapping);
+      Object.assign(t2Map, a2.mapping);
+    }
+    // タイブレーカーノイズ
+    totalScore += Math.random() * 0.01;
+    if (totalScore > bestTotal) {
+      bestTotal = totalScore;
+      bestResult = { ...t1Map, ...t2Map };
+    }
+  }
+
+  return bestResult || { ...assignLanes(team1), ...assignLanes(team2) };
 }
 
 /** 選出方式に応じて選出傾向オプションの表示を切り替え */
@@ -1369,8 +1470,10 @@ function generateRound() {
     ? balanceByRankCount(selected)
     : balanceByRankSum(selected);
 
-  // レーン割当を両チーム独立で計算
-  const lanes = { ...assignLanes(team1), ...assignLanes(team2) };
+  // レーン割当: 人数バランス時は同レシオが対面に来るペア最適化、その他は独立最適化
+  const lanes = (mode === 'rank_count')
+    ? assignLanesPaired(team1, team2)
+    : { ...assignLanes(team1), ...assignLanes(team2) };
 
   const round = {
     num: rounds.length + 1,
@@ -1488,7 +1591,9 @@ function rerollRound() {
   current.breaks = players.filter(p => p.onBreak).map(p => p.id);
   current.rerolls = (current.rerolls || 0) + 1;
   // チーム構成変更に伴いレーンも再割当
-  current.lanes = { ...assignLanes(team1), ...assignLanes(team2) };
+  current.lanes = (mode === 'rank_count')
+    ? assignLanesPaired(team1, team2)
+    : { ...assignLanes(team1), ...assignLanes(team2) };
   // チーム構成が変わるため、勝敗判定モード時は勝者をクリア
   if (winRateMode) current.winner = null;
 

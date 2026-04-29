@@ -266,7 +266,10 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .player-item .icon-btn.lane-btn { width:auto; padding:0 .35rem; font-size:.6rem; font-weight:700; letter-spacing:.5px; }
 
 /* Quick help card */
-.quick-help-card { background:linear-gradient(135deg,#fdfaf3,#fff); border:1px solid var(--gold-line); border-radius:.5rem; padding:.85rem 1.1rem; }
+.quick-help-card { background:linear-gradient(135deg,#fdfaf3,#fff); border:1px solid var(--gold-line); border-radius:.5rem; padding:.85rem 1.1rem; min-width:0; }
+@media (max-width: 576px) {
+  .quick-help-card { padding:.7rem .75rem; }
+}
 .quick-help-card .qh-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; padding-bottom:.5rem; border-bottom:1px solid var(--gold-line); }
 .quick-help-card .qh-title { font-family:'Cinzel',serif; font-size:.78rem; letter-spacing:2px; color:var(--gold); font-weight:700; }
 .quick-help-card .qh-toggle { background:none; border:none; color:var(--gold); cursor:pointer; padding:0 .25rem; font-size:1rem; transition:transform .2s; }
@@ -275,8 +278,9 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .quick-help-card.collapsed .qh-body { display:none; }
 
 /* 2列固定（狭幅は1列に降格）。各行はタグ列 + 内容列のテーブル風レイアウト */
-.qh-body { display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:0 1.4rem; font-size:.82rem; color:var(--text); }
-.qh-row { display:grid; grid-template-columns:72px 1fr; align-items:start; gap:.7rem; padding:.5rem 0; line-height:1.6; border-bottom:1px dashed rgba(184,146,42,.25); }
+/* min() でコンテナ幅を超えないようにクランプ（スマホでオーバーフロー防止） */
+.qh-body { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap:0 1.4rem; font-size:.82rem; color:var(--text); }
+.qh-row { display:grid; grid-template-columns:64px minmax(0, 1fr); align-items:start; gap:.6rem; padding:.5rem 0; line-height:1.6; border-bottom:1px dashed rgba(184,146,42,.25); word-break:break-word; }
 .qh-row:last-child { border-bottom:none; }
 .qh-row > .qh-tag { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); padding:.2rem .35rem; border-radius:.3rem; font-size:.7rem; font-weight:700; text-align:center; letter-spacing:1px; height:fit-content; }
 .qh-row .qh-icon { color:var(--gold); flex-shrink:0; }

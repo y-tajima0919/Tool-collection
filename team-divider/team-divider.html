@@ -253,8 +253,8 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .lane-NONE { color:var(--text-muted); background:#f4f4f4; border-color:var(--border); font-weight:500; }
 
 /* Lane selector buttons (registration / modal) */
-.lane-selector { display:inline-flex; gap:.25rem; flex-wrap:wrap; }
-.lane-selector .btn-lane { padding:.25rem .55rem; font-size:.7rem; font-weight:600; border:1.5px solid var(--border); background:#fff; color:var(--text-muted); border-radius:.3rem; cursor:pointer; transition:all .15s; min-width:42px; letter-spacing:.5px; }
+.lane-selector { display:flex; gap:.25rem; flex-wrap:wrap; }
+.lane-selector .btn-lane { flex:1; min-width:42px; padding:.25rem .35rem; font-size:.7rem; font-weight:600; border:1.5px solid var(--border); background:#fff; color:var(--text-muted); border-radius:.3rem; cursor:pointer; transition:all .15s; letter-spacing:.5px; text-align:center; }
 .lane-selector .btn-lane:hover { border-color:var(--gold); }
 .lane-selector .btn-lane.active.lane-TOP { background:var(--lane-top-bg); color:var(--lane-top-c); border-color:var(--lane-top-c); }
 .lane-selector .btn-lane.active.lane-JG  { background:var(--lane-jg-bg);  color:var(--lane-jg-c);  border-color:var(--lane-jg-c); }

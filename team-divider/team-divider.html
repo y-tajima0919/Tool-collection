@@ -422,9 +422,9 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
           <span class="mode-row-label">チーム分け</span>
           <div class="toggle-pills">
             <input type="radio" name="mode" id="mRC" value="rank_count" checked>
-            <label for="mRC" title="各レシオの人数が両チームで均等になるよう分配">均等レシオ</label>
+            <label for="mRC" title="各レシオの人数を両チームで均等に分配">人数バランス</label>
             <input type="radio" name="mode" id="mRS" value="rank_sum">
-            <label for="mRS" title="スネークドラフトでレシオ合計が均等になるよう分配">合計均等</label>
+            <label for="mRS" title="スネークドラフトでレシオ合計値が等しくなるよう分配">戦力バランス</label>
           </div>
         </div>
         <div class="mode-row">
@@ -531,8 +531,8 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
           <dd>担当レーン空 = 全レーンOK（柔軟に割当可能）</dd>
 
           <dt>チーム分けモード</dt>
-          <dd><strong>均等レシオ</strong>: 各レシオの人数を両チーム均等に分配（標準）</dd>
-          <dd><strong>合計均等</strong>: スネークドラフトでレシオ合計が均等になるよう分配</dd>
+          <dd><strong>人数バランス</strong>: 各レシオの人数を両チームで均等に分配（標準）<br>例: レシオ1×4人、レシオ2×4人、レシオ3×2人 → 両チーム同じ内訳</dd>
+          <dd><strong>戦力バランス</strong>: スネークドラフトでレシオ合計値が等しくなるよう分配<br>例: BLUE合計10 ≈ RED合計10（人数の内訳は不揃いでもOK）</dd>
 
           <dt>選出方式</dt>
           <dd><strong>バランス</strong>: レシオの均衡を重視（連戦許可）</dd>
@@ -592,7 +592,7 @@ const TEAM_SIZE = 5;
 // 合計値の表示には rank + 1 を使用すること（calcRankSum 参照）
 const RANK_LABELS = ['1', '2', '3'];
 const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
-const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
+const MODE_LABELS = { rank_count: '人数バランス', rank_sum: '戦力バランス' };
 const SELECTION_LABELS = { rotation: 'ローテーション', balance: 'バランス' };
 const BIAS_LABELS = { none: '均等', low: '低レシオ優先', high: '高レシオ優先' };
 // ロックグループ: 0=未指定, 1=A, 2=B, 3=C （同じグループは必ず同じチーム）

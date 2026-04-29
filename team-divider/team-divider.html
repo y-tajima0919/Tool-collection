@@ -278,7 +278,14 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
             <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;"><i class="bi bi-sort-numeric-down me-1"></i>選出傾向（バランス優先時）</div>
             <div class="d-flex gap-4 flex-wrap">
               <div class="form-check mb-0">
-                <input class="form-check-input" type="radio" name="bias" id="biasLow" value="low" checked>
+                <input class="form-check-input" type="radio" name="bias" id="biasNone" value="none" checked>
+                <label class="form-check-label" for="biasNone">
+                  <strong>なし</strong>
+                  <div style="font-size:.72rem;color:var(--text-muted);">どちらにも偏らない（参加回数バランスのみで選出）</div>
+                </label>
+              </div>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="radio" name="bias" id="biasLow" value="low">
                 <label class="form-check-label" for="biasLow">
                   <strong>低レシオ優先</strong>
                   <div style="font-size:.72rem;color:var(--text-muted);">レシオが低い人を多く選出</div>
@@ -344,7 +351,7 @@ const RANK_LABELS = ['1', '2', '3'];
 const RANK_BADGE_CLASSES = ['rb-0', 'rb-1', 'rb-2'];
 const MODE_LABELS = { rank_count: '均等レシオ', rank_sum: '合計均等' };
 const SELECTION_LABELS = { rotation: 'ローテーション', balance: 'バランス' };
-const BIAS_LABELS = { low: '低レシオ優先', high: '高レシオ優先' };
+const BIAS_LABELS = { none: 'バイアスなし', low: '低レシオ優先', high: '高レシオ優先' };
 // ロックグループ: 0=未指定, 1=A, 2=B, 3=C （同じグループは必ず同じチーム）
 const LOCK_LABELS = ['', 'A', 'B', 'C'];
 const SAVE_KEY = 'lol_td_players';
@@ -593,7 +600,7 @@ function sortForRotation(pool, minOne) {
  * 同レシオ内では軽くローテーションを考慮する。
  * @param {Array} pool - 候補プレイヤー
  * @param {string} mode - 'rank_count' or 'rank_sum'
- * @param {string} bias - 'low' or 'high'
+ * @param {string} bias - 'none' / 'low' / 'high'
  * @param {boolean} minOne - 各レシオから最低1名選出するか
  */
 function sortForBalance(pool, mode, bias, minOne) {
@@ -704,9 +711,10 @@ function sortForBalance(pool, mode, bias, minOne) {
   });
 
   const weighted = valid.map(c => {
-    const biasValue = (bias === 'low')
-      ? (c.comp[0] * 3 + c.comp[1])
-      : (c.comp[2] * 3 + c.comp[1]);
+    // バイアス値: none は 0（バイアスなし）、low/high は構成のレシオ偏りで重み付け
+    let biasValue = 0;
+    if (bias === 'low')  biasValue = c.comp[0] * 3 + c.comp[1];
+    if (bias === 'high') biasValue = c.comp[2] * 3 + c.comp[1];
     // rank_count: 強い重み（構成を固定寄り）、rank_sum: ほぼ均等（バリエーション重視）
     const base = (mode === 'rank_count') ? 2 : 1.05;
     // 参加回数バランス調整: 平均より参加が多いレシオを多く選ぶほど重みを下げる

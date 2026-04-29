@@ -610,11 +610,27 @@ function sortForBalance(pool, mode, bias, minOne) {
     groups[p.rank].push(p);
   }
 
-  // 各グループ内は軽くローテーション考慮でソート
+  // 各グループ内をローテーション考慮でソート（少参加・多待機の人を優先）
+  // 1. 前ラウンドの待機者を優先（連続待機を回避）
+  // 2. 参加回数が少ない人を優先
+  // 3. 待機回数が多い人を優先
+  // 4. 最後の参加が古い人を優先
+  // 5. ランダム（登録順バイアス除去）
+  const lastRound = rounds.length ? rounds[rounds.length - 1] : null;
   for (const g of groups) {
     g.sort((a, b) => {
-      const d = getLastPlayedIndex(a.id) - getLastPlayedIndex(b.id);
-      return d !== 0 ? d : Math.random() - 0.5;
+      if (lastRound) {
+        const aWasSpec = lastRound.specs.includes(a.id);
+        const bWasSpec = lastRound.specs.includes(b.id);
+        if (aWasSpec !== bWasSpec) return bWasSpec ? 1 : -1;
+      }
+      const playDiff = getPlayCount(a.id) - getPlayCount(b.id);
+      if (playDiff !== 0) return playDiff;
+      const specDiff = getSpecCount(b.id) - getSpecCount(a.id);
+      if (specDiff !== 0) return specDiff;
+      const playedDiff = getLastPlayedIndex(a.id) - getLastPlayedIndex(b.id);
+      if (playedDiff !== 0) return playedDiff;
+      return Math.random() - 0.5;
     });
   }
 

@@ -1073,10 +1073,17 @@ function swapInRound(round, srcLoc, srcId, dstLoc, dstId) {
   dstArr[dstIdx] = srcId;
   round.selectedIds = [...round.t1, ...round.t2];
   if (winRateMode) round.winner = null;
-  // チーム構成変更に伴いレーンも再割当
-  const team1 = round.t1.map(id => findPlayer(id)).filter(Boolean);
-  const team2 = round.t2.map(id => findPlayer(id)).filter(Boolean);
-  round.lanes = { ...assignLanes(team1), ...assignLanes(team2) };
+  // レーンは「場所に紐付く」形でスワップ（自動再割当はしない）
+  //   team→team:  両方のレーンを入替
+  //   team→specs: チーム側にいたプレイヤーが待機者になり、相手がそのレーンを引き継ぐ
+  //   specs→team: 逆方向（待機者だったプレイヤーがそのレーンに就く）
+  if (!round.lanes) round.lanes = {};
+  const srcLane = round.lanes[srcId];
+  const dstLane = round.lanes[dstId];
+  delete round.lanes[srcId];
+  delete round.lanes[dstId];
+  if (dstLane !== undefined) round.lanes[srcId] = dstLane;
+  if (srcLane !== undefined) round.lanes[dstId] = srcLane;
   return true;
 }
 

@@ -49,7 +49,9 @@
   --text:      #1A1A1A;
   --text-muted:#888888;
 }
-body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); color:var(--text); font-size:14px; }
+/* 全体スケーリング: html の基準を 16px→20px に上げて rem ベースの寸法をすべて 1.25 倍にする */
+html { font-size:20px; }
+body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); color:var(--text); font-size:.875rem; /* 17.5px = 旧 14px × 1.25 */ }
 
 .app-header {
   background:linear-gradient(135deg,#2A1E0A,#1A1206);

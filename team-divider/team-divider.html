@@ -266,18 +266,22 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .player-item .icon-btn.lane-btn { width:auto; padding:0 .35rem; font-size:.6rem; font-weight:700; letter-spacing:.5px; }
 
 /* Quick help card */
-.quick-help-card { background:linear-gradient(135deg,#fdfaf3,#fff); border:1px solid var(--gold-line); border-radius:.5rem; padding:.65rem .85rem; }
-.quick-help-card .qh-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; }
-.quick-help-card .qh-title { font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:2px; color:var(--gold); }
-.quick-help-card .qh-toggle { background:none; border:none; color:var(--gold); cursor:pointer; padding:0 .25rem; font-size:.85rem; transition:transform .2s; }
+.quick-help-card { background:linear-gradient(135deg,#fdfaf3,#fff); border:1px solid var(--gold-line); border-radius:.5rem; padding:.85rem 1.1rem; }
+.quick-help-card .qh-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; padding-bottom:.5rem; border-bottom:1px solid var(--gold-line); }
+.quick-help-card .qh-title { font-family:'Cinzel',serif; font-size:.78rem; letter-spacing:2px; color:var(--gold); font-weight:700; }
+.quick-help-card .qh-toggle { background:none; border:none; color:var(--gold); cursor:pointer; padding:0 .25rem; font-size:1rem; transition:transform .2s; }
 .quick-help-card.collapsed .qh-toggle { transform:rotate(180deg); }
-.quick-help-card.collapsed .qh-head { margin-bottom:0; }
+.quick-help-card.collapsed .qh-head { margin-bottom:0; padding-bottom:0; border-bottom:none; }
 .quick-help-card.collapsed .qh-body { display:none; }
-.qh-body { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:.35rem .8rem; font-size:.74rem; color:var(--text); }
-.qh-row { display:flex; align-items:flex-start; gap:.45rem; line-height:1.5; }
-.qh-tag { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); padding:.05rem .4rem; border-radius:.25rem; font-size:.62rem; font-weight:600; min-width:54px; text-align:center; flex-shrink:0; letter-spacing:1px; }
+
+/* 2列固定（狭幅は1列に降格）。各行はタグ列 + 内容列のテーブル風レイアウト */
+.qh-body { display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:0 1.4rem; font-size:.82rem; color:var(--text); }
+.qh-row { display:grid; grid-template-columns:72px 1fr; align-items:start; gap:.7rem; padding:.5rem 0; line-height:1.6; border-bottom:1px dashed rgba(184,146,42,.25); }
+.qh-row:last-child { border-bottom:none; }
+.qh-row > .qh-tag { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); padding:.2rem .35rem; border-radius:.3rem; font-size:.7rem; font-weight:700; text-align:center; letter-spacing:1px; height:fit-content; }
 .qh-row .qh-icon { color:var(--gold); flex-shrink:0; }
-.qh-row strong { color:var(--text); font-weight:600; }
+.qh-row strong { color:var(--text); font-weight:700; }
+.qh-row code { background:rgba(184,146,42,.1); color:var(--text); padding:.05rem .25rem; border-radius:.2rem; font-size:.92em; font-family:inherit; }
 
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
@@ -354,31 +358,31 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         <div class="qh-body">
           <div class="qh-row">
             <span class="qh-tag">参加者</span>
-            <span>レシオ=<strong>クリック変更</strong> / <i class="bi bi-bullseye qh-icon"></i>担当レーン・<i class="bi bi-star qh-icon"></i>★優先・<i class="bi bi-eye qh-icon"></i>👁待機・<i class="bi bi-lock qh-icon"></i>🔒ロック・<i class="bi bi-x-lg qh-icon"></i>削除</span>
+            <span>レシオは<strong>クリックで変更</strong>。アイコンで <i class="bi bi-bullseye qh-icon"></i>担当レーン / <i class="bi bi-star qh-icon"></i>★優先 / <i class="bi bi-eye qh-icon"></i>👁待機 / <i class="bi bi-lock qh-icon"></i>🔒ロック / <i class="bi bi-x-lg qh-icon"></i>削除 を設定</span>
           </div>
           <div class="qh-row">
             <span class="qh-tag">レーン</span>
-            <span><span class="lane-badge lane-TOP">TOP</span> <span class="lane-badge lane-JG">JG</span> <span class="lane-badge lane-MID">MID</span> <span class="lane-badge lane-ADC">ADC</span> <span class="lane-badge lane-SUP">SUP</span> ラウンド生成時に希望優先で自動割当</span>
+            <span><span class="lane-badge lane-TOP">TOP</span> <span class="lane-badge lane-JG">JG</span> <span class="lane-badge lane-MID">MID</span> <span class="lane-badge lane-ADC">ADC</span> <span class="lane-badge lane-SUP">SUP</span> の5レーン。ラウンド生成時に<strong>希望優先で自動割当</strong></span>
           </div>
           <div class="qh-row">
-            <span class="qh-tag">チーム</span>
-            <span><strong>D&amp;D</strong>または<strong>2人タップ</strong>でチーム⇔待機者を入替</span>
+            <span class="qh-tag">入替</span>
+            <span><strong>ドラッグ&amp;ドロップ</strong> または <strong>2人タップ</strong> でチーム ⇔ 待機者 を入れ替え</span>
           </div>
           <div class="qh-row">
             <span class="qh-tag">モード</span>
-            <span>チーム分け方式・選出方式・選出傾向・<i class="bi bi-trophy qh-icon"></i>勝敗判定 を下のカードで設定</span>
+            <span>チーム分け方式 / 選出方式 / 選出傾向 / <i class="bi bi-trophy qh-icon"></i>勝敗判定 は<strong>下の設定カード</strong>から</span>
           </div>
           <div class="qh-row">
             <span class="qh-tag">勝敗</span>
-            <span>勝敗判定モードON時、ラウンド毎に<strong>勝者を入力</strong>すると次ラウンド生成可能になる</span>
-          </div>
-          <div class="qh-row">
-            <span class="qh-tag">設定</span>
-            <span>右上 <i class="bi bi-three-dots-vertical qh-icon"></i> から 履歴リセット・データ削除・詳細ヘルプ</span>
+            <span>勝敗判定モードON時、ラウンド毎に<strong>勝者を入力</strong>するまで次ラウンド生成は不可</span>
           </div>
           <div class="qh-row">
             <span class="qh-tag">重複</span>
-            <span>過去と同じ組み合わせは<strong>赤バッジ</strong>で警告。クリックで該当ラウンドへジャンプ</span>
+            <span>過去と同じ組み合わせは <span class="bbadge bg-danger-subtle text-danger-emphasis" style="font-size:.65rem;">⚠ 赤バッジ</span> で警告。<strong>クリックで該当ラウンドへ</strong>ジャンプ</span>
+          </div>
+          <div class="qh-row">
+            <span class="qh-tag">設定</span>
+            <span>右上の <i class="bi bi-three-dots-vertical qh-icon"></i> メニュー から 履歴リセット / データ削除 / 詳細ヘルプ</span>
           </div>
         </div>
       </div>

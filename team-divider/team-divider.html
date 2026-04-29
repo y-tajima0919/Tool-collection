@@ -376,6 +376,9 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
         </div>
       </div>
 
+      <!-- Winner input (勝敗判定モードON時のみ表示) -->
+      <div id="winnerContainer"></div>
+
       <!-- Mode -->
       <div class="mode-card">
         <div class="section-label d-flex justify-content-between align-items-center" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
@@ -581,6 +584,7 @@ function onToggleWinRateMode() {
     renderCurrent(rounds[rounds.length - 1]);
     renderHistory();
   }
+  renderWinnerContainer();
   renderList();
   updateGenerateButtonState();
 }
@@ -1633,6 +1637,8 @@ function renderList() {
 
 function renderCurrent(round) {
   const container = document.getElementById('teamsContainer');
+  // 勝者入力エリアはラウンド生成行直下の独立コンテナに配置
+  renderWinnerContainer();
 
   if (!round) {
     container.innerHTML = '<div class="no-round-msg">「次のラウンド生成」を押してチーム分けを開始</div>';
@@ -1700,7 +1706,6 @@ function renderCurrent(round) {
       ${dupRound !== null ? `<span class="bbadge bg-danger-subtle text-danger-emphasis dup-link" onclick="scrollToHistoryRound(${dupRound.num})" title="R${dupRound.num} へジャンプ"><i class="bi bi-exclamation-octagon me-1"></i>R${dupRound.num} と${dupRound.swapped ? '同じ顔ぶれ(B/R逆転)' : '同じ組み合わせ'}</span>` : ''}
       ${rankDistInfo}
     </div>
-    ${winRateMode ? renderWinnerSection(round) : ''}
     <div class="spec-section">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="section-label mb-0"><i class="bi bi-eye me-1"></i>待機者</div>
@@ -1721,6 +1726,17 @@ function renderCurrent(round) {
         プレイヤーを<strong>ドラッグ&ドロップ</strong>または<strong>2人タップ</strong>で入れ替え可能
       </div>
     </div>`;
+}
+
+/** 勝者入力コンテナを更新（ラウンド生成行の下、独立配置） */
+function renderWinnerContainer() {
+  const container = document.getElementById('winnerContainer');
+  if (!container) return;
+  if (!winRateMode || !rounds.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = renderWinnerSection(rounds[rounds.length - 1]);
 }
 
 /** 勝者入力セクション（勝敗判定モード時のみ） */

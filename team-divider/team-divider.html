@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAM DIVIDER v1.12</title>
+<title>TEAM DIVIDER v1.13</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -145,6 +145,20 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 .no-round-msg { text-align:center; padding:3rem 1rem; color:var(--text-muted); font-style:italic; border:1.5px dashed var(--border); border-radius:.5rem; background:var(--card-bg); }
 .bbadge { font-size:.68rem; padding:.15rem .5rem; border-radius:2rem; font-weight:500; }
 
+/* Winner UI */
+.winner-section { background:var(--card-bg); border:1.5px dashed var(--gold-line); border-radius:.4rem; padding:.6rem .85rem; display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+.btn-win { font-family:'Cinzel',serif; font-size:.78rem; font-weight:700; letter-spacing:1px; padding:.35rem 1.1rem; border:1.5px solid; border-radius:.35rem; background:#fff; transition:all .15s; cursor:pointer; }
+.btn-win-blue { color:var(--blue); border-color:var(--blue-bd); }
+.btn-win-blue:hover { background:var(--blue-bg); }
+.btn-win-red { color:var(--red); border-color:var(--red-bd); }
+.btn-win-red:hover { background:var(--red-bg); }
+.btn-win-clear { color:var(--text-muted); border-color:var(--border); font-family:'Noto Sans JP'; font-size:.7rem; padding:.25rem .55rem; }
+.btn-win-clear:hover { background:#f4f4f4; }
+.winner-badge { font-family:'Cinzel',serif; font-size:.78rem; font-weight:700; letter-spacing:2px; padding:.3rem .8rem; border-radius:.35rem; }
+.winner-badge.blue { color:var(--blue); background:var(--blue-bg); border:1.5px solid var(--blue-bd); }
+.winner-badge.red  { color:var(--red);  background:var(--red-bg);  border:1.5px solid var(--red-bd); }
+.win-pill { font-size:.6rem; padding:.08rem .35rem; border-radius:.25rem; background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-line); white-space:nowrap; }
+
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
@@ -154,7 +168,7 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
 
 <div class="app-header">
   <div>
-    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.12</span></h1>
+    <h1><i class="bi bi-shield-fill-exclamation me-2"></i>TEAM DIVIDER <span class="version">v1.13</span></h1>
     <p>BALANCED MATCHMAKING SYSTEM</p>
   </div>
 </div>
@@ -301,6 +315,15 @@ body { font-family:'Noto Sans JP',sans-serif; background-color:var(--body-bg); c
             </div>
           </div>
         </div>
+        <div class="border-top mt-2 pt-2" style="border-color:var(--border)!important;">
+          <div class="form-check mb-0" style="font-size:.82rem;">
+            <input class="form-check-input" type="checkbox" id="winRateMode" onchange="onToggleWinRateMode()">
+            <label class="form-check-label" for="winRateMode">
+              <strong><i class="bi bi-trophy me-1" style="color:var(--gold);"></i>勝敗判定モード</strong>
+              <div style="font-size:.72rem;color:var(--text-muted);">ラウンドごとに勝者を入力。チーム分けで勝利数を均等化（次ラウンド生成は勝者入力後のみ）</div>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div id="teamsContainer">
@@ -338,6 +361,7 @@ let players = [];
 let rounds = [];
 let selectedRank = 0;
 let nextPlayerId = 0;
+let winRateMode = false;
 
 // ═══════════════════════════════════════════════════════
 //  Constants
@@ -401,6 +425,18 @@ function getSelectedBias() {
 /** 各レシオから最低1名選出するかを取得 */
 function getMinOnePerRatio() {
   return document.getElementById('minOnePerRatio').checked;
+}
+
+/** 勝敗判定モードのトグル（チェックボックス変更時） */
+function onToggleWinRateMode() {
+  winRateMode = document.getElementById('winRateMode').checked;
+  saveData();
+  if (rounds.length) {
+    renderCurrent(rounds[rounds.length - 1]);
+    renderHistory();
+  }
+  renderList();
+  updateGenerateButtonState();
 }
 
 /** トースト通知 */
@@ -523,6 +559,32 @@ function getLastPlayedIndex(id) {
     if (rounds[i].t1.includes(id) || rounds[i].t2.includes(id)) return i;
   }
   return -1;
+}
+
+/** 勝利回数 */
+function getWinCount(id) {
+  return rounds.filter(r =>
+    (r.winner === 't1' && r.t1.includes(id)) ||
+    (r.winner === 't2' && r.t2.includes(id))
+  ).length;
+}
+
+/** 敗北回数 */
+function getLossCount(id) {
+  return rounds.filter(r =>
+    (r.winner === 't1' && r.t2.includes(id)) ||
+    (r.winner === 't2' && r.t1.includes(id))
+  ).length;
+}
+
+/** チームの勝利数合計 */
+function calcTeamWins(team) {
+  return team.reduce((s, p) => s + getWinCount(p.id), 0);
+}
+
+/** 両チームの勝利数の差 */
+function calcWinDiff(team1, team2) {
+  return Math.abs(calcTeamWins(team1) - calcTeamWins(team2));
 }
 
 // ═══════════════════════════════════════════════════════
@@ -750,6 +812,15 @@ function sortForBalance(pool, mode, bias, minOne) {
 
 /** ラウンド生成 */
 function generateRound() {
+  // 勝敗判定モード時は、現ラウンドの勝者が未入力なら生成不可
+  if (winRateMode && rounds.length > 0) {
+    const last = rounds[rounds.length - 1];
+    if (!last.winner) {
+      toast('現ラウンドの勝者を入力してください', 'warning');
+      return;
+    }
+  }
+
   const mode = getSelectedMode();
   const selectionMode = getSelectedSelectionMode();
   const bias = getSelectedBias();
@@ -779,7 +850,8 @@ function generateRound() {
     specs: spectators.map(p => p.id),
     breaks: players.filter(p => p.onBreak).map(p => p.id),
     selectedIds: selected.map(p => p.id),
-    rerolls: 0
+    rerolls: 0,
+    winner: null
   };
 
   rounds.push(round);
@@ -787,10 +859,41 @@ function generateRound() {
   renderCurrent(round);
   renderHistory();
   renderList();
+  saveData();
+  updateGenerateButtonState();
   document.getElementById('roundLabel').textContent = 'ROUND ' + round.num;
 
   const dup = findDuplicateRound(round);
   if (dup !== null) toast('⚠ R' + dup + ' と同じ組み合わせです', 'danger');
+}
+
+/** 現ラウンドの勝者を設定（'t1' / 't2' / null） */
+function setWinner(team) {
+  if (!rounds.length) return;
+  const round = rounds[rounds.length - 1];
+  round.winner = team;
+  saveData();
+  renderCurrent(round);
+  renderHistory();
+  renderList();
+  updateGenerateButtonState();
+}
+
+/** 「次のラウンド生成」ボタンの有効/無効を更新 */
+function updateGenerateButtonState() {
+  const btn = document.querySelector('button.btn-generate');
+  if (!btn) return;
+  if (winRateMode && rounds.length > 0 && !rounds[rounds.length - 1].winner) {
+    btn.disabled = true;
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
+    btn.title = '現ラウンドの勝者を入力してください';
+  } else {
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.title = '';
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -859,6 +962,10 @@ function rerollRound() {
   current.specs = players.filter(p => !p.onBreak && !selectedIds.has(p.id)).map(p => p.id);
   current.breaks = players.filter(p => p.onBreak).map(p => p.id);
   current.rerolls = (current.rerolls || 0) + 1;
+  // チーム構成が変わるため、勝敗判定モード時は勝者をクリア
+  if (winRateMode) current.winner = null;
+  saveData();
+  updateGenerateButtonState();
 
   renderCurrent(current);
   renderHistory();
@@ -983,10 +1090,16 @@ function balanceByRankSum(selected) {
   // ロックグループの整合化（Pass 2 の前に寄せておく）
   consolidateLockGroups(team1, team2);
 
-  // Pass 2: レシオ差を悪化させずに同チームペアを最小化
+  // Pass 2: レシオ差を悪化させずに同チームペア・勝利数差を最小化
   // ロックグループを分断するスワップは禁止
   if (rounds.length > 0) {
     const targetDiff = calcRankDiff(team1, team2);
+    // 同チームペアスコア + 勝利数差 * 係数
+    const score = () => {
+      const pair = calcSameTeamScore(team1, team2);
+      const win = winRateMode ? calcWinDiff(team1, team2) : 0;
+      return pair + win * 5;
+    };
     improved = true;
     iterations = 0;
     while (improved && iterations++ < 300) {
@@ -994,9 +1107,9 @@ function balanceByRankSum(selected) {
       for (let i = 0; i < team1.length; i++) {
         for (let j = 0; j < team2.length; j++) {
           if (wouldSplitLockGroup(team1, team2, i, j)) continue;
-          const currentScore = calcSameTeamScore(team1, team2);
+          const currentScore = score();
           [team1[i], team2[j]] = [team2[j], team1[i]];
-          if (calcSameTeamScore(team1, team2) < currentScore
+          if (score() < currentScore
             && calcRankDiff(team1, team2) <= targetDiff) {
             improved = true;
           } else {
@@ -1108,10 +1221,18 @@ function consolidateLockGroups(team1, team2) {
 /**
  * 同レシオスワップ最適化（balanceByRankCount 用）
  * レシオ均等を崩さずに過去の同チームペアを最小化
+ * 勝敗判定モード時は勝利数差も考慮
  * ロックグループの分散を生むスワップは禁止
  */
 function optimizeSameRankSwaps(team1, team2) {
   if (rounds.length === 0) return;
+
+  // スコア関数（小さいほど良い）: 同チームペアスコア + 勝利数差 * 係数
+  const score = () => {
+    const pair = calcSameTeamScore(team1, team2);
+    const win = winRateMode ? calcWinDiff(team1, team2) : 0;
+    return pair + win * 5;
+  };
 
   let improved = true;
   let iterations = 0;
@@ -1121,9 +1242,9 @@ function optimizeSameRankSwaps(team1, team2) {
       for (let j = 0; j < team2.length; j++) {
         if (team1[i].rank !== team2[j].rank) continue;
         if (wouldSplitLockGroup(team1, team2, i, j)) continue;
-        const before = calcSameTeamScore(team1, team2);
+        const before = score();
         [team1[i], team2[j]] = [team2[j], team1[i]];
-        if (calcSameTeamScore(team1, team2) < before) {
+        if (score() < before) {
           improved = true;
         } else {
           [team1[i], team2[j]] = [team2[j], team1[i]];
@@ -1251,12 +1372,16 @@ function renderList() {
     const lg = player.lockGroup || 0;
     const lockLabel = lg ? `🔒${LOCK_LABELS[lg]}` : '🔒';
     const lockClass = lg ? ` lg-${lg}` : '';
+    const winHtml = winRateMode
+      ? `<span class="stat-pill" title="勝-負"><i class="bi bi-trophy" style="font-size:.58rem;color:var(--gold);"></i>&nbsp;<span class="v">${getWinCount(player.id)}-${getLossCount(player.id)}</span></span>`
+      : '';
 
     return `<div class="player-item${player.onBreak ? ' on-break' : ''}">
       <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" onclick="cycleRank(${player.id})" title="クリックでレシオ変更">${RANK_LABELS[player.rank]}</div>
       <div class="flex-grow-1 text-truncate" style="max-width:72px;">${escapeHtml(player.name)}</div>
       <span class="stat-pill"><i class="bi bi-controller" style="font-size:.58rem;"></i>&nbsp;<span class="v">${playCount}</span></span>
       <span class="stat-pill"><i class="bi bi-eye" style="font-size:.58rem;"></i>&nbsp;<span class="v">${specCount}</span></span>
+      ${winHtml}
       <button class="btn-flag${player.priority ? ' on-pri' : ''}" onclick="togglePriority(${player.id})">★優先</button>
       <button class="btn-flag${player.onBreak ? ' on-brk' : ''}" onclick="toggleBreak(${player.id})">👁待機</button>
       <button class="btn-lock${lockClass}" onclick="cycleLockGroup(${player.id})" title="同チーム固定グループ">${lockLabel}</button>
@@ -1332,6 +1457,7 @@ function renderCurrent(round) {
       ${dupRound !== null ? `<span class="bbadge bg-danger-subtle text-danger-emphasis"><i class="bi bi-exclamation-octagon me-1"></i>R${dupRound} と同じ組み合わせ</span>` : ''}
       ${rankDistInfo}
     </div>
+    ${winRateMode ? renderWinnerSection(round) : ''}
     <div class="spec-section">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="section-label mb-0"><i class="bi bi-eye me-1"></i>待機者</div>
@@ -1350,10 +1476,31 @@ function renderCurrent(round) {
     </div>`;
 }
 
+/** 勝者入力セクション（勝敗判定モード時のみ） */
+function renderWinnerSection(round) {
+  if (!round.winner) {
+    return `<div class="winner-section mb-2">
+      <span style="font-size:.75rem;color:var(--text-muted);"><i class="bi bi-trophy me-1" style="color:var(--gold);"></i>勝者を選択してください:</span>
+      <button class="btn-win btn-win-blue" onclick="setWinner('t1')"><i class="bi bi-shield-fill me-1"></i>BLUE 勝利</button>
+      <button class="btn-win btn-win-red" onclick="setWinner('t2')"><i class="bi bi-shield-fill me-1"></i>RED 勝利</button>
+    </div>`;
+  }
+  const winLabel = round.winner === 't1' ? 'BLUE' : 'RED';
+  const winClass = round.winner === 't1' ? 'blue' : 'red';
+  return `<div class="winner-section mb-2">
+    <span style="font-size:.75rem;color:var(--text-muted);">勝者:</span>
+    <span class="winner-badge ${winClass}"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>${winLabel} 勝利</span>
+    <button class="btn-win btn-win-clear" onclick="setWinner(null)" title="勝者をクリア">変更</button>
+  </div>`;
+}
+
 /** チーム内のプレイヤー1行 */
 function renderPlayerRow(player, number, source) {
   const lg = player.lockGroup || 0;
   const lockHtml = lg ? `<span class="lock-badge lg-${lg}" title="ロックグループ ${LOCK_LABELS[lg]}">🔒${LOCK_LABELS[lg]}</span>` : '';
+  const winHtml = winRateMode
+    ? `<span class="win-pill" title="勝ち-負け">${getWinCount(player.id)}-${getLossCount(player.id)}</span>`
+    : '';
   const dragAttrs = source
     ? `draggable="true" data-src="${source}" data-pid="${player.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"`
     : '';
@@ -1361,6 +1508,7 @@ function renderPlayerRow(player, number, source) {
     <div class="p-num">${number}</div>
     <div class="rank-badge ${RANK_BADGE_CLASSES[player.rank]}" style="width:20px;height:20px;font-size:.6rem;">${RANK_LABELS[player.rank]}</div>
     <div class="flex-grow-1">${escapeHtml(player.name)}</div>
+    ${winHtml}
     ${lockHtml}
     ${player.priority ? '<i class="bi bi-star-fill ms-auto" style="color:var(--gold);font-size:.68rem;"></i>' : ''}
   </div>`;
@@ -1396,12 +1544,17 @@ function renderHistory() {
     const team2Html = round.t2.map(nameWithRatio).join(', ');
     const specNames = round.specs.map(id => findPlayer(id)?.name || '?').join(', ');
 
+    const winnerHtml = round.winner
+      ? `<span class="winner-badge ${round.winner === 't1' ? 'blue' : 'red'}" style="font-size:.6rem;padding:.1rem .4rem;letter-spacing:1px;"><i class="bi bi-trophy-fill me-1" style="color:var(--gold);"></i>${round.winner === 't1' ? 'B' : 'R'}勝</span>`
+      : '';
+
     return `<div class="history-item">
       <div class="d-flex align-items-center gap-2 mb-1">
         <span class="r-badge">R${round.num}</span>
         <span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${modeLabel}</span>
         ${selLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${selLabel}</span>` : ''}
         ${biasLabel ? `<span class="badge bg-light text-secondary border" style="font-size:.6rem;font-weight:400;">${biasLabel}</span>` : ''}
+        ${winnerHtml}
         ${round.rerolls ? `<span class="reroll-badge"><i class="bi bi-arrow-repeat me-1"></i>${round.rerolls}回</span>` : ''}
       </div>
       <div style="color:var(--text-muted);line-height:1.8;">
@@ -1487,7 +1640,11 @@ function onDrop(ev) {
 
   // selectedIds 再計算（チームに居るプレイヤー）
   round.selectedIds = [...round.t1, ...round.t2];
+  // チーム構成が変わるため、勝敗判定モード時は勝者をクリア
+  if (winRateMode) round.winner = null;
 
+  saveData();
+  updateGenerateButtonState();
   renderCurrent(round);
   renderHistory();
   renderList();
@@ -1506,6 +1663,8 @@ function resetRounds() {
   if (!confirm('ラウンド履歴をリセットしますか？')) return;
 
   rounds = [];
+  saveData();
+  updateGenerateButtonState();
   showRerollControls(false);
   renderCurrent(null);
   renderHistory();
@@ -1522,7 +1681,9 @@ function saveData() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       players,
-      pid: nextPlayerId
+      pid: nextPlayerId,
+      rounds,
+      winRateMode
     }));
   } catch (err) { /* ignore */ }
 }
@@ -1536,7 +1697,24 @@ function loadData() {
       // 後方互換: lockGroup が無い古いデータには 0（未指定）を補完
       players = data.players.map(p => ({ lockGroup: 0, ...p }));
       nextPlayerId = data.pid || 0;
+      // ラウンド履歴の復元（後方互換: winner が無い古いデータには null）
+      if (Array.isArray(data.rounds)) {
+        rounds = data.rounds.map(r => ({ winner: null, ...r }));
+      }
+      // 勝敗判定モードの復元
+      winRateMode = !!data.winRateMode;
+      const winRateModeEl = document.getElementById('winRateMode');
+      if (winRateModeEl) winRateModeEl.checked = winRateMode;
+      // 復元後の表示を更新
       renderList();
+      if (rounds.length) {
+        const last = rounds[rounds.length - 1];
+        showRerollControls(true);
+        renderCurrent(last);
+        document.getElementById('roundLabel').textContent = 'ROUND ' + last.num;
+      }
+      renderHistory();
+      updateGenerateButtonState();
       toast('参加者データを復元しました', 'secondary');
     }
   } catch (err) { /* ignore */ }

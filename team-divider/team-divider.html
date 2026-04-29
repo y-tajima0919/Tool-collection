@@ -693,13 +693,30 @@ function sortForBalance(pool, mode, bias, minOne) {
   // 低レシオ優先: レシオ1の人数を最重視し、次にレシオ2の人数を重視
   // 高レシオ優先: レシオ3の人数を最重視し、次にレシオ2の人数を重視
   // rank_sum 時は穏やかな重みにして構成のバリエーションを確保
+  // さらに、各レシオの平均参加回数を見て、参加が多いレシオを多く選ぶ構成にペナルティ
+  const meanPlay = pool.length > 0
+    ? pool.reduce((s, p) => s + getPlayCount(p.id), 0) / pool.length
+    : 0;
+  const avgPlayByRank = [0, 1, 2].map(r => {
+    const ps = pool.filter(p => p.rank === r);
+    if (ps.length === 0) return meanPlay;
+    return ps.reduce((s, p) => s + getPlayCount(p.id), 0) / ps.length;
+  });
+
   const weighted = valid.map(c => {
     const biasValue = (bias === 'low')
       ? (c.comp[0] * 3 + c.comp[1])
       : (c.comp[2] * 3 + c.comp[1]);
     // rank_count: 強い重み（構成を固定寄り）、rank_sum: ほぼ均等（バリエーション重視）
     const base = (mode === 'rank_count') ? 2 : 1.05;
-    return { comp: c.comp, weight: Math.pow(base, biasValue) };
+    // 参加回数バランス調整: 平均より参加が多いレシオを多く選ぶほど重みを下げる
+    // 全員の参加回数が均等なら playFactor = 1（影響なし）
+    const playImbalance = c.comp.reduce(
+      (s, cnt, r) => s + cnt * (avgPlayByRank[r] - meanPlay),
+      0
+    );
+    const playFactor = Math.exp(-0.25 * playImbalance);
+    return { comp: c.comp, weight: Math.pow(base, biasValue) * playFactor };
   });
   const totalWeight = weighted.reduce((s, w) => s + w.weight, 0);
   let roll = Math.random() * totalWeight;
